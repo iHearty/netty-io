@@ -1,0 +1,18 @@
+apply plugin: 'java'
+
+repositories {
+   jcenter()
+
+   maven {
+      url "http://115.28.148.171:8081/nexus/content/groups/public/"
+   }
+}
+
+dependencies {
+   compile "com.google.protobuf:protobuf-java:2.5.0"
+   compile "io.netty:netty-all:5.0.0.Alpha1"
+}
+
+compileJava {
+   options.encoding = "UTF-8"
+}
