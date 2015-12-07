@@ -27,13 +27,13 @@ public final class Transport {
         getIdBytes();
 
     /**
-     * <code>optional int32 type = 2;</code>
+     * <code>optional int32 status = 2;</code>
      */
-    boolean hasType();
+    boolean hasStatus();
     /**
-     * <code>optional int32 type = 2;</code>
+     * <code>optional int32 status = 2;</code>
      */
-    int getType();
+    int getStatus();
 
     /**
      * <code>optional string action = 3;</code>
@@ -118,7 +118,7 @@ public final class Transport {
             }
             case 16: {
               bitField0_ |= 0x00000002;
-              type_ = input.readInt32();
+              status_ = input.readInt32();
               break;
             }
             case 26: {
@@ -214,19 +214,19 @@ public final class Transport {
       }
     }
 
-    public static final int TYPE_FIELD_NUMBER = 2;
-    private int type_;
+    public static final int STATUS_FIELD_NUMBER = 2;
+    private int status_;
     /**
-     * <code>optional int32 type = 2;</code>
+     * <code>optional int32 status = 2;</code>
      */
-    public boolean hasType() {
+    public boolean hasStatus() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>optional int32 type = 2;</code>
+     * <code>optional int32 status = 2;</code>
      */
-    public int getType() {
-      return type_;
+    public int getStatus() {
+      return status_;
     }
 
     public static final int ACTION_FIELD_NUMBER = 3;
@@ -288,7 +288,7 @@ public final class Transport {
 
     private void initFields() {
       id_ = "";
-      type_ = 0;
+      status_ = 0;
       action_ = "";
       message_ = com.google.protobuf.ByteString.EMPTY;
     }
@@ -313,7 +313,7 @@ public final class Transport {
         output.writeBytes(1, getIdBytes());
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        output.writeInt32(2, type_);
+        output.writeInt32(2, status_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         output.writeBytes(3, getActionBytes());
@@ -336,7 +336,7 @@ public final class Transport {
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(2, type_);
+          .computeInt32Size(2, status_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         size += com.google.protobuf.CodedOutputStream
@@ -465,7 +465,7 @@ public final class Transport {
         super.clear();
         id_ = "";
         bitField0_ = (bitField0_ & ~0x00000001);
-        type_ = 0;
+        status_ = 0;
         bitField0_ = (bitField0_ & ~0x00000002);
         action_ = "";
         bitField0_ = (bitField0_ & ~0x00000004);
@@ -506,7 +506,7 @@ public final class Transport {
         if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
           to_bitField0_ |= 0x00000002;
         }
-        result.type_ = type_;
+        result.status_ = status_;
         if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
           to_bitField0_ |= 0x00000004;
         }
@@ -536,8 +536,8 @@ public final class Transport {
           id_ = other.id_;
           onChanged();
         }
-        if (other.hasType()) {
-          setType(other.getType());
+        if (other.hasStatus()) {
+          setStatus(other.getStatus());
         }
         if (other.hasAction()) {
           bitField0_ |= 0x00000004;
@@ -654,34 +654,34 @@ public final class Transport {
         return this;
       }
 
-      private int type_ ;
+      private int status_ ;
       /**
-       * <code>optional int32 type = 2;</code>
+       * <code>optional int32 status = 2;</code>
        */
-      public boolean hasType() {
+      public boolean hasStatus() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
       /**
-       * <code>optional int32 type = 2;</code>
+       * <code>optional int32 status = 2;</code>
        */
-      public int getType() {
-        return type_;
+      public int getStatus() {
+        return status_;
       }
       /**
-       * <code>optional int32 type = 2;</code>
+       * <code>optional int32 status = 2;</code>
        */
-      public Builder setType(int value) {
+      public Builder setStatus(int value) {
         bitField0_ |= 0x00000002;
-        type_ = value;
+        status_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional int32 type = 2;</code>
+       * <code>optional int32 status = 2;</code>
        */
-      public Builder clearType() {
+      public Builder clearStatus() {
         bitField0_ = (bitField0_ & ~0x00000002);
-        type_ = 0;
+        status_ = 0;
         onChanged();
         return this;
       }
@@ -823,9 +823,9 @@ public final class Transport {
   static {
     java.lang.String[] descriptorData = {
       "\n\017Transport.proto\022\025cn.togeek.netty.proto" +
-      "\"D\n\007Message\022\n\n\002id\030\001 \002(\t\022\014\n\004type\030\002 \001(\005\022\016\n" +
-      "\006action\030\003 \001(\t\022\017\n\007message\030\004 \001(\014B\"\n\023cn.tog" +
-      "eek.netty.rpcB\tTransportH\001"
+      "\"F\n\007Message\022\n\n\002id\030\001 \002(\t\022\016\n\006status\030\002 \001(\005\022" +
+      "\016\n\006action\030\003 \001(\t\022\017\n\007message\030\004 \001(\014B\"\n\023cn.t" +
+      "ogeek.netty.rpcB\tTransportH\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -844,7 +844,7 @@ public final class Transport {
     internal_static_cn_togeek_netty_proto_Message_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_cn_togeek_netty_proto_Message_descriptor,
-        new java.lang.String[] { "Id", "Type", "Action", "Message", });
+        new java.lang.String[] { "Id", "Status", "Action", "Message", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)
