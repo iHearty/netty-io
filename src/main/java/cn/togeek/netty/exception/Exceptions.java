@@ -70,6 +70,10 @@ public class Exceptions {
             out.writeInt(13);
             writeCause = false;
          }
+         else if(throwable instanceof ArithmeticException) {
+            out.writeInt(14);
+            writeCause = false;
+         }
          else {
             out.writeInt(0);
             BaseException exception = (BaseException) throwable;
@@ -202,6 +206,9 @@ public class Exceptions {
          case 13 :
             return (T) readStackTrace(
                new InterruptedException(readString(in)), in);
+         case 14 :
+            return (T) readStackTrace(
+               new ArithmeticException(readString(in)), in);
          default :
             assert false : "no such exception for id: " + key;
          }
