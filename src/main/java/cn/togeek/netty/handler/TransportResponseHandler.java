@@ -4,4 +4,6 @@ public interface TransportResponseHandler<Response extends TransportResponse> {
    Response newInstance();
 
    void handleResponse(Response response);
+
+   void handleException(TransportException exception);
 }

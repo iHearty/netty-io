@@ -40,14 +40,14 @@ public class TransportService {
       requestHandlers.put(action, registry);
    }
 
-   public static RequestHandlerRegistry getRequestHandler(String action) {
+   public static RequestHandlerRegistry<?> getRequestHandler(String action) {
       return requestHandlers.get(action);
    }
 
-   public static TransportResponseHandler
+   public static TransportResponseHandler<?>
       onResponseReceived(final String messageId)
    {
-      RequestHolder holder = requestHolders.remove(messageId);
+      RequestHolder<?> holder = requestHolders.remove(messageId);
       return holder.handler();
    }
 
@@ -59,15 +59,33 @@ public class TransportService {
                      throws IOException
    {
       final String messageId = Strings.randomBase64UUID();
-      final ByteString message = request.writeTo();
-      Message.Builder builder = Message.newBuilder()
-         .setId(messageId)
-         .setType(TransportType.REQUEST.getType())
-         .setAction(action)
-         .setMessage(message);
 
-      requestHolders.put(messageId, new RequestHolder<>(handler, action));
-      channels.find(channelId).writeAndFlush(builder.build());
+      try {
+         final ByteString message = request.writeTo();
+         Message.Builder builder = Message.newBuilder()
+            .setId(messageId)
+            .setType(TransportType.REQUEST.getType())
+            .setAction(action)
+            .setMessage(message);
+
+         requestHolders.put(messageId, new RequestHolder<>(handler, action));
+         channels.find(channelId).writeAndFlush(builder.build());
+      }
+      catch(Throwable e) {
+         final RequestHolder<?> holder = requestHolders.remove(messageId);
+
+         if(holder != null) {
+            final SendRequestTransportException sendRequestException =
+               new SendRequestTransportException(action, e);
+
+            channels.find(channelId).eventLoop().execute(new Runnable() {
+               @Override
+               public void run() {
+                  holder.handler().handleException(sendRequestException);
+               }
+            });
+         }
+      }
    }
 
    private TransportService() {
