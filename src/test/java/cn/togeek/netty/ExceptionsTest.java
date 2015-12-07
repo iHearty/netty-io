@@ -3,6 +3,7 @@ package cn.togeek.netty;
 import java.io.IOException;
 
 import cn.togeek.netty.exception.Exceptions;
+import cn.togeek.netty.exception.NotSerializableExceptionWrapper;
 import cn.togeek.netty.exception.SendRequestTransportException;
 
 import io.netty.buffer.ByteBuf;
@@ -26,6 +27,13 @@ public class ExceptionsTest {
          Exceptions.writeThrowable(write, buffer);
          read = Exceptions.readThrowable(buffer);
          printThrowable(read);
+
+         buffer.clear();
+
+         write = new UnsupportedOperationException("un support");
+         Exceptions.writeThrowable(write, buffer);
+         read = Exceptions.readThrowable(buffer);
+         printThrowable(read);
       }
       finally {
          ReferenceCountUtil.release(buffer);
@@ -43,6 +51,13 @@ public class ExceptionsTest {
       buffer.append("Cause:");
       buffer.append(throwable.getCause());
       buffer.append("\n");
+
+      if(throwable instanceof NotSerializableExceptionWrapper) {
+         buffer.append("ExceptionName:");
+         buffer.append(((NotSerializableExceptionWrapper) throwable)
+            .getExceptionName());
+         buffer.append("\n");
+      }
 
       StackTraceElement[] stackTraces = throwable.getStackTrace();
 

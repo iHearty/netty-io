@@ -76,12 +76,16 @@ public class Exceptions {
          }
          else {
             out.writeInt(0);
-            BaseException exception = (BaseException) throwable;
-            writeString(exception.getClass().getName(), out);
-            writeString(exception.getMessage(), out);
-            writeThrowable(exception.getCause(), out);
-            writeStackTraces(exception, out);
+            BaseException exception;
 
+            if(throwable instanceof BaseException) {
+               exception = (BaseException) throwable;
+            }
+            else {
+               exception = new NotSerializableExceptionWrapper(throwable);
+            }
+
+            exception.writeTo(out);
             return;
          }
 
@@ -97,7 +101,7 @@ public class Exceptions {
       }
    }
 
-   private static void writeString(String str, ByteBuf out) {
+   static void writeString(String str, ByteBuf out) {
       if(str == null) {
          out.writeBoolean(false);
       }
@@ -118,8 +122,8 @@ public class Exceptions {
     * Serializes the given exceptions stacktrace elements as well as it's
     * suppressed exceptions to the given output stream.
     */
-   private static <T extends Throwable> void
-      writeStackTraces(T throwable, ByteBuf out)
+   static <T extends Throwable> void writeStackTraces(T throwable,
+                                                      ByteBuf out)
    {
       StackTraceElement[] stackTrace = throwable.getStackTrace();
       out.writeInt(stackTrace.length);
@@ -147,21 +151,23 @@ public class Exceptions {
          switch(key) {
          case 0 :
             final String declaringClass = readString(in);
-            T throwable = null;
+            BaseException throwable = null;
 
             try {
-               Class<T> clazz = (Class<T>) Class.forName(declaringClass);
-               Constructor<T> cons =
+               Class<BaseException> clazz =
+                  (Class<BaseException>) Class.forName(declaringClass);
+               Constructor<BaseException> cons =
                   clazz.getConstructor(String.class, Throwable.class);
                throwable = cons.newInstance(readString(in), readThrowable(in));
                throwable = readStackTrace(throwable, in);
+               throwable.readFrom(in);
             }
             catch(Exception e) {
                throw new RuntimeException(
                   "no such exception [" + declaringClass + "]");
             }
 
-            return throwable;
+            return (T) throwable;
          case 1 :
             return (T) readStackTrace(
                new NullPointerException(readString(in)), in);
@@ -217,7 +223,7 @@ public class Exceptions {
       return null;
    }
 
-   private static String readString(ByteBuf in) {
+   static String readString(ByteBuf in) {
       if(in.readBoolean()) {
          final int size = in.readInt();
          byte[] bytes = new byte[size];
@@ -233,9 +239,7 @@ public class Exceptions {
     * given output stream and
     * adds it to the given exception.
     */
-   private static <T extends Throwable> T readStackTrace(T throwable,
-                                                         ByteBuf in)
-   {
+   static <T extends Throwable> T readStackTrace(T throwable, ByteBuf in) {
       final int stackTraceElements = in.readInt();
       StackTraceElement[] stackTrace =
          new StackTraceElement[stackTraceElements];
