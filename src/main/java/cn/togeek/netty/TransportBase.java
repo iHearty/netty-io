@@ -1,5 +1,7 @@
 package cn.togeek.netty;
 
+import cn.togeek.netty.exception.SettingsException;
+
 import io.netty.bootstrap.AbstractBootstrap;
 import io.netty.channel.Channel;
 

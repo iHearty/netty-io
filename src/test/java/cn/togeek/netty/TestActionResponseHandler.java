@@ -1,6 +1,6 @@
 package cn.togeek.netty;
 
-import cn.togeek.netty.handler.TransportException;
+import cn.togeek.netty.exception.TransportException;
 import cn.togeek.netty.handler.TransportResponseHandler;
 
 public class TestActionResponseHandler

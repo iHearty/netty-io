@@ -3,8 +3,8 @@ package cn.togeek.netty.server;
 import java.net.InetSocketAddress;
 
 import cn.togeek.netty.Settings;
-import cn.togeek.netty.SettingsException;
 import cn.togeek.netty.TransportBase;
+import cn.togeek.netty.exception.SettingsException;
 import cn.togeek.netty.rpc.Transport;
 import cn.togeek.netty.util.Strings;
 

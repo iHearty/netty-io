@@ -5,7 +5,7 @@ import java.io.IOException;
 import com.google.protobuf.ByteString;
 
 import cn.togeek.netty.rpc.Transport.Message;
-import cn.togeek.netty.rpc.TransportType;
+import cn.togeek.netty.rpc.TransportStatus;
 
 import io.netty.channel.Channel;
 
@@ -32,13 +32,30 @@ public class NettyTransportChannel implements TransportChannel {
 
    @Override
    public void sendResponse(TransportResponse response) throws IOException {
-      ByteString message = response.writeTo();
+      final ByteString message = response.writeTo();
+      int status = 0;
+      status = TransportStatus.setResponse(status);
 
       Message.Builder builder = Message.newBuilder()
          .setId(messageId)
-         .setType(TransportType.RESPONSE.getType())
+         .setType(status)
          .setAction(action)
          .setMessage(message);
+      channel.writeAndFlush(builder.build());
+   }
+
+   @Override
+   public void sendResponse(Throwable error) throws IOException {
+      int status = 0;
+      status = TransportStatus.setResponse(status);
+      status = TransportStatus.setError(status);
+
+      // TODO write throwable
+      Message.Builder builder = Message.newBuilder()
+         .setId(messageId)
+         .setType(status)
+         .setAction(action)
+         .setMessage(ByteString.EMPTY);
       channel.writeAndFlush(builder.build());
    }
 }

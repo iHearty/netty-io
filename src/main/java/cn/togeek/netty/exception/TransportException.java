@@ -1,9 +1,9 @@
-package cn.togeek.netty.handler;
+package cn.togeek.netty.exception;
 
-public class SendRequestTransportException extends TransportException {
+public class TransportException extends Exception {
    private static final long serialVersionUID = 1L;
 
-   public SendRequestTransportException(String action, Throwable cause) {
+   public TransportException(String action, Throwable cause) {
       super(buildMessage(action), cause);
    }
 

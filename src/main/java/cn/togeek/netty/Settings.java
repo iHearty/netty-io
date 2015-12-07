@@ -7,6 +7,7 @@ import java.util.Properties;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import cn.togeek.netty.exception.SettingsException;
 import cn.togeek.netty.util.Strings;
 
 public final class Settings {

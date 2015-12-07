@@ -6,4 +6,6 @@ public interface TransportChannel {
    String action();
 
    void sendResponse(TransportResponse response) throws IOException;
+
+   void sendResponse(Throwable error) throws IOException;
 }

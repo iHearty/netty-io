@@ -1,4 +1,4 @@
-package cn.togeek.netty;
+package cn.togeek.netty.exception;
 
 /**
  * A generic failure to handle settings.
