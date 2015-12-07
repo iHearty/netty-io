@@ -7,6 +7,8 @@ import java.util.logging.Logger;
 import com.google.protobuf.ByteString;
 
 import cn.togeek.netty.exception.RemoteTransportException;
+import cn.togeek.netty.exception.ResponseHandlerFailureTransportException;
+import cn.togeek.netty.exception.TransportSerializationException;
 import cn.togeek.netty.rpc.Transport.Message;
 import cn.togeek.netty.rpc.TransportStatus;
 
@@ -94,10 +96,21 @@ public class TransportHandler extends SimpleChannelInboundHandler<Message> {
 
       try {
          response.readFrom(message);
+      }
+      catch(Throwable e) {
+         handleException(handler, new TransportSerializationException(
+            "Failed to deserialize response of type ["
+               + response.getClass().getName() + "]",
+            e));
+         return;
+      }
+
+      try {
          handler.handleResponse(response);
       }
       catch(Throwable e) {
-         // TODO send error response
+         handleException(handler,
+            new ResponseHandlerFailureTransportException(e));
       }
    }
 }
