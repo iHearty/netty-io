@@ -13,4 +13,10 @@ public class TestActionRequest implements TransportRequest, TRANSPORT_RETRY {
    public void readFrom(ByteString in) throws IOException {
       System.out.println("$$ request read " + new String(in.toByteArray()));
    }
+
+   @Override
+   public ByteString writeTo() throws IOException {
+      System.out.println("$$ request write ");
+      return ByteString.copyFrom("hello".getBytes());
+   }
 }

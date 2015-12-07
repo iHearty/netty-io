@@ -1,5 +1,6 @@
 package cn.togeek.netty;
 
+import java.io.IOException;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -28,10 +29,16 @@ public class NettyTest {
          public void update(Observable observable, Object arg) {
             if(arg instanceof ChannelId) {
                ChannelId channelId = (ChannelId) arg;
-               TransportService.sendRequest(channelId,
-                  TestAction.class.getName(),
-                  "hello".getBytes(),
-                  new TestActionResponseHandler());
+
+               try {
+                  TransportService.sendRequest(channelId,
+                     TestAction.class.getName(),
+                     new TestActionRequest(),
+                     new TestActionResponseHandler());
+               }
+               catch(IOException e) {
+                  e.printStackTrace();
+               }
             }
          }
       });

@@ -1,5 +1,6 @@
 package cn.togeek.netty.handler;
 
+import java.io.IOException;
 import java.util.concurrent.ConcurrentMap;
 
 import com.google.protobuf.ByteString;
@@ -53,15 +54,17 @@ public class TransportService {
    public static <Response extends TransportResponse> void
       sendRequest(final ChannelId channelId,
                   final String action,
-                  byte[] message,
+                  final TransportRequest request,
                   TransportResponseHandler<Response> handler)
+                     throws IOException
    {
       final String messageId = Strings.randomBase64UUID();
+      final ByteString message = request.writeTo();
       Message.Builder builder = Message.newBuilder()
          .setId(messageId)
          .setType(TransportType.REQUEST.getType())
          .setAction(action)
-         .setMessage(ByteString.copyFrom(message));
+         .setMessage(message);
 
       requestHolders.put(messageId, new RequestHolder<>(handler, action));
       channels.find(channelId).writeAndFlush(builder.build());
