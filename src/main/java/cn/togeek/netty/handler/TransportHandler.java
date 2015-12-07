@@ -18,7 +18,7 @@ public class TransportHandler extends SimpleChannelInboundHandler<Message> {
                                   Message message) throws Exception
    {
       if(TransportType.isRequset(message.getType())) {
-         handleRequest(context.channel(), message.getAction(),
+         handleRequest(context.channel(), message.getId(), message.getAction(),
             message.getMessage());
       }
       else if(TransportType.isResponse(message.getType())) {
@@ -36,17 +36,19 @@ public class TransportHandler extends SimpleChannelInboundHandler<Message> {
 
    @SuppressWarnings({"rawtypes", "unchecked"})
    private void handleRequest(Channel channel,
+                              String messageId,
                               String action,
                               ByteString message) throws IOException
    {
       final RequestHandlerRegistry registry =
          TransportService.getRequestHandler(action);
-      TransportRequest request;
+      final NettyTransportChannel transportChannel =
+         new NettyTransportChannel(messageId, action, channel);
 
       try {
-         request = registry.newRequest();
+         TransportRequest request = registry.newRequest();
          request.readFrom(message);
-         registry.getHandler().handle(request, channel);
+         registry.getHandler().handle(request, transportChannel);
       }
       catch(IOException e) {
          throw e;

@@ -1,16 +1,15 @@
 package cn.togeek.netty;
 
+import cn.togeek.netty.handler.TransportChannel;
 import cn.togeek.netty.handler.TransportRequestHandler;
-
-import io.netty.channel.Channel;
 
 public class TestActionRequestHandler
    implements TransportRequestHandler<TestActionRequest>
 {
    @Override
-   public void handle(TestActionRequest request, Channel channel)
+   public void handle(TestActionRequest request, TransportChannel channel)
       throws Exception
    {
-      System.out.println(" request handle ");
+      channel.sendResponse(new TestActionResponse());
    }
 }
