@@ -38,7 +38,7 @@ public class NettyTransportChannel implements TransportChannel {
 
       Message.Builder builder = Message.newBuilder()
          .setId(messageId)
-         .setType(status)
+         .setStatus(status)
          .setAction(action)
          .setMessage(message);
       channel.writeAndFlush(builder.build());
@@ -53,7 +53,7 @@ public class NettyTransportChannel implements TransportChannel {
       // TODO write throwable
       Message.Builder builder = Message.newBuilder()
          .setId(messageId)
-         .setType(status)
+         .setStatus(status)
          .setAction(action)
          .setMessage(ByteString.EMPTY);
       channel.writeAndFlush(builder.build());

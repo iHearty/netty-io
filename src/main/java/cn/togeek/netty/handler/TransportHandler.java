@@ -23,7 +23,7 @@ public class TransportHandler extends SimpleChannelInboundHandler<Message> {
    protected void messageReceived(ChannelHandlerContext context,
                                   Message message) throws Exception
    {
-      if(TransportStatus.isRequest(message.getType())) {
+      if(TransportStatus.isRequest(message.getStatus())) {
          handleRequest(context.channel(), message.getId(), message.getAction(),
             message.getMessage());
       }
@@ -32,7 +32,7 @@ public class TransportHandler extends SimpleChannelInboundHandler<Message> {
             TransportService.INSTANCE.onResponseReceived(message.getId());
 
          if(handler != null) {
-            if(TransportStatus.isError(message.getType())) {
+            if(TransportStatus.isError(message.getStatus())) {
                // TODO read message to throwable
                handleException(handler, null);
             }

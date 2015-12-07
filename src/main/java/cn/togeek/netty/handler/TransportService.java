@@ -5,8 +5,8 @@ import java.util.concurrent.ConcurrentMap;
 
 import com.google.protobuf.ByteString;
 
-import cn.togeek.netty.rpc.Transport.Message;
 import cn.togeek.netty.exception.SendRequestTransportException;
+import cn.togeek.netty.rpc.Transport.Message;
 import cn.togeek.netty.rpc.TransportStatus;
 import cn.togeek.netty.util.Strings;
 
@@ -70,7 +70,7 @@ public class TransportService {
 
          Message.Builder builder = Message.newBuilder()
             .setId(messageId)
-            .setType(status)
+            .setStatus(status)
             .setAction(action)
             .setMessage(message);
          requestHolders.put(messageId, new RequestHolder<>(handler, action));
