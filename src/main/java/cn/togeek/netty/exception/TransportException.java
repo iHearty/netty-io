@@ -1,6 +1,6 @@
 package cn.togeek.netty.exception;
 
-public class TransportException extends Exception {
+public class TransportException extends BaseException {
    private static final long serialVersionUID = 1L;
 
    public TransportException(Throwable cause) {

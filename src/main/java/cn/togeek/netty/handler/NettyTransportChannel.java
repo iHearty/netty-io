@@ -5,9 +5,11 @@ import java.io.IOException;
 import com.google.protobuf.ByteString;
 
 import cn.togeek.netty.rpc.Transport.Message;
+import cn.togeek.netty.exception.Exceptions;
 import cn.togeek.netty.rpc.TransportStatus;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.util.ReferenceCountUtil;
 
@@ -54,16 +56,23 @@ public class NettyTransportChannel implements TransportChannel {
 
    @Override
    public void sendResponse(Throwable error) throws IOException {
-      int status = 0;
-      status = TransportStatus.setResponse(status);
-      status = TransportStatus.setError(status);
+      final ByteBuf output = Unpooled.buffer();
 
-      // TODO write throwable
-      Message.Builder builder = Message.newBuilder()
-         .setId(messageId)
-         .setStatus(status)
-         .setAction(action)
-         .setMessage(ByteString.EMPTY);
-      channel.writeAndFlush(builder.build());
+      try {
+         int status = 0;
+         status = TransportStatus.setResponse(status);
+         status = TransportStatus.setError(status);
+
+         Exceptions.writeThrowable(error, output);
+         Message.Builder builder = Message.newBuilder()
+            .setId(messageId)
+            .setStatus(status)
+            .setAction(action)
+            .setMessage(ByteString.copyFrom(output.nioBuffer()));
+         channel.writeAndFlush(builder.build());
+      }
+      finally {
+         ReferenceCountUtil.release(output);
+      }
    }
 }

@@ -6,6 +6,7 @@ import java.util.logging.Logger;
 
 import com.google.protobuf.ByteString;
 
+import cn.togeek.netty.exception.Exceptions;
 import cn.togeek.netty.exception.RemoteTransportException;
 import cn.togeek.netty.exception.ResponseHandlerFailureTransportException;
 import cn.togeek.netty.exception.TransportSerializationException;
@@ -38,8 +39,22 @@ public class TransportHandler extends SimpleChannelInboundHandler<Message> {
 
          if(handler != null) {
             if(TransportStatus.isError(message.getStatus())) {
-               // TODO read message to throwable
-               handleException(handler, null);
+               Throwable error;
+               ByteBuf input = Unpooled
+                  .copiedBuffer(message.getMessage().asReadOnlyByteBuffer());
+
+               try {
+                  error = Exceptions.readThrowable(input);
+               }
+               catch(Throwable e) {
+                  error = new TransportSerializationException(
+                     "Failed to deserialize exception response from stream", e);
+               }
+               finally {
+                  ReferenceCountUtil.release(input);
+               }
+
+               handleException(handler, error);
             }
             else {
                handleResponse(context.channel(), message.getMessage(), handler);
