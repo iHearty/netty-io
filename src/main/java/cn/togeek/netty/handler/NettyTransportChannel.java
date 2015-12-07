@@ -7,7 +7,9 @@ import com.google.protobuf.ByteString;
 import cn.togeek.netty.rpc.Transport.Message;
 import cn.togeek.netty.rpc.TransportStatus;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
+import io.netty.util.ReferenceCountUtil;
 
 public class NettyTransportChannel implements TransportChannel {
    private final String messageId;
@@ -32,16 +34,22 @@ public class NettyTransportChannel implements TransportChannel {
 
    @Override
    public void sendResponse(TransportResponse response) throws IOException {
-      final ByteString message = response.writeTo();
-      int status = 0;
-      status = TransportStatus.setResponse(status);
+      final ByteBuf output = response.writeTo();
 
-      Message.Builder builder = Message.newBuilder()
-         .setId(messageId)
-         .setStatus(status)
-         .setAction(action)
-         .setMessage(message);
-      channel.writeAndFlush(builder.build());
+      try {
+         int status = 0;
+         status = TransportStatus.setResponse(status);
+
+         Message.Builder builder = Message.newBuilder()
+            .setId(messageId)
+            .setStatus(status)
+            .setAction(action)
+            .setMessage(ByteString.copyFrom(output.nioBuffer()));
+         channel.writeAndFlush(builder.build());
+      }
+      finally {
+         ReferenceCountUtil.release(output);
+      }
    }
 
    @Override

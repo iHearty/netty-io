@@ -2,10 +2,10 @@ package cn.togeek.netty;
 
 import java.io.IOException;
 
-import com.google.protobuf.ByteString;
+import io.netty.buffer.ByteBuf;
 
 public interface Streamable {
-   void readFrom(ByteString in) throws IOException;
+   void readFrom(ByteBuf in) throws IOException;
 
-   ByteString writeTo() throws IOException;
+   ByteBuf writeTo() throws IOException;
 }

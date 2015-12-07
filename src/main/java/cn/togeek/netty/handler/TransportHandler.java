@@ -12,9 +12,12 @@ import cn.togeek.netty.exception.TransportSerializationException;
 import cn.togeek.netty.rpc.Transport.Message;
 import cn.togeek.netty.rpc.TransportStatus;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.util.ReferenceCountUtil;
 
 public class TransportHandler extends SimpleChannelInboundHandler<Message> {
    private static final Logger logger = Logger
@@ -55,10 +58,12 @@ public class TransportHandler extends SimpleChannelInboundHandler<Message> {
          TransportService.INSTANCE.getRequestHandler(action);
       final NettyTransportChannel transportChannel =
          new NettyTransportChannel(messageId, action, channel);
+      ByteBuf input = null;
 
       try {
          TransportRequest request = registry.newRequest();
-         request.readFrom(message);
+         input = Unpooled.copiedBuffer(message.asReadOnlyByteBuffer());
+         request.readFrom(input);
          registry.getHandler().handle(request, transportChannel);
       }
       catch(Throwable e) {
@@ -72,6 +77,9 @@ public class TransportHandler extends SimpleChannelInboundHandler<Message> {
                e);
             logger.log(Level.SEVERE, "Actual Exception", ex);
          }
+      }
+      finally {
+         ReferenceCountUtil.release(input);
       }
    }
 
@@ -93,9 +101,11 @@ public class TransportHandler extends SimpleChannelInboundHandler<Message> {
                                TransportResponseHandler handler)
    {
       final TransportResponse response = handler.newInstance();
+      ByteBuf input = null;
 
       try {
-         response.readFrom(message);
+         input = Unpooled.copiedBuffer(message.asReadOnlyByteBuffer());
+         response.readFrom(input);
       }
       catch(Throwable e) {
          handleException(handler, new TransportSerializationException(
@@ -103,6 +113,9 @@ public class TransportHandler extends SimpleChannelInboundHandler<Message> {
                + response.getClass().getName() + "]",
             e));
          return;
+      }
+      finally {
+         ReferenceCountUtil.release(input);
       }
 
       try {

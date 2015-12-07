@@ -10,10 +10,12 @@ import cn.togeek.netty.rpc.Transport.Message;
 import cn.togeek.netty.rpc.TransportStatus;
 import cn.togeek.netty.util.Strings;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelId;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
+import io.netty.util.ReferenceCountUtil;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import io.netty.util.internal.PlatformDependent;
 
@@ -62,9 +64,9 @@ public class TransportService {
                      throws IOException
    {
       final String messageId = Strings.randomBase64UUID();
+      final ByteBuf output = request.writeTo();
 
       try {
-         final ByteString message = request.writeTo();
          int status = 0;
          status = TransportStatus.setRequest(status);
 
@@ -72,7 +74,7 @@ public class TransportService {
             .setId(messageId)
             .setStatus(status)
             .setAction(action)
-            .setMessage(message);
+            .setMessage(ByteString.copyFrom(output.nioBuffer()));
          requestHolders.put(messageId, new RequestHolder<>(handler, action));
          channels.find(channelId).writeAndFlush(builder.build());
       }
@@ -90,6 +92,9 @@ public class TransportService {
                }
             });
          }
+      }
+      finally {
+         ReferenceCountUtil.release(output);
       }
    }
 
