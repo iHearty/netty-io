@@ -67,8 +67,7 @@ public class TransportClient extends TransportBase<Bootstrap> {
          .group(workGroup)
          .channel(NioSocketChannel.class)
          .option(ChannelOption.SO_REUSEADDR, true)
-         .option(ChannelOption.TCP_NODELAY, true)
-         .option(ChannelOption.SO_KEEPALIVE, true);
+         .option(ChannelOption.TCP_NODELAY, true);
 
       if(!Strings.isEmpty(settings.get(SO_SNDBUF))) {
          bootstrap.option(ChannelOption.SO_SNDBUF,

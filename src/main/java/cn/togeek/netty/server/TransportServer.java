@@ -57,8 +57,7 @@ public class TransportServer extends TransportBase<ServerBootstrap> {
          .option(ChannelOption.SO_REUSEADDR, true)
          .option(ChannelOption.TCP_NODELAY, true)
          .option(ChannelOption.SO_KEEPALIVE, true)
-         .childOption(ChannelOption.TCP_NODELAY, true)
-         .childOption(ChannelOption.SO_KEEPALIVE, true);
+         .childOption(ChannelOption.TCP_NODELAY, true);
 
       if(!Strings.isEmpty(settings.get(SO_BACKLOG))) {
          bootstrap.option(ChannelOption.SO_BACKLOG,
