@@ -23,7 +23,7 @@ public class TransportHandler extends SimpleChannelInboundHandler<Message> {
       }
       else if(TransportType.isResponse(message.getType())) {
          TransportResponseHandler handler =
-            TransportService.onResponseReceived(message.getId());
+            TransportService.INSTANCE.onResponseReceived(message.getId());
 
          if(handler != null) {
             handleResponse(context.channel(), message.getMessage(), handler);
@@ -41,7 +41,7 @@ public class TransportHandler extends SimpleChannelInboundHandler<Message> {
                               ByteString message) throws IOException
    {
       final RequestHandlerRegistry registry =
-         TransportService.getRequestHandler(action);
+         TransportService.INSTANCE.getRequestHandler(action);
       final NettyTransportChannel transportChannel =
          new NettyTransportChannel(messageId, action, channel);
 

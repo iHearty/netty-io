@@ -11,7 +11,7 @@ public class ChannelRegistryHandler extends ChannelHandlerAdapter {
    public void channelActive(ChannelHandlerContext context)
       throws Exception
    {
-      TransportService.addChannel(context.channel());
+      TransportService.INSTANCE.addChannel(context.channel());
       context.fireChannelActive();
       GlobalObservable.INSTANCE.notifyObservers(context.channel().id());
    }

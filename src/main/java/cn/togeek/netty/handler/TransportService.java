@@ -17,20 +17,22 @@ import io.netty.util.concurrent.GlobalEventExecutor;
 import io.netty.util.internal.PlatformDependent;
 
 public class TransportService {
-   private static final ChannelGroup channels = new DefaultChannelGroup(
+   public static final TransportService INSTANCE = new TransportService();
+
+   private final ChannelGroup channels = new DefaultChannelGroup(
       GlobalEventExecutor.INSTANCE);
 
-   private static final ConcurrentMap<String, RequestHandlerRegistry> requestHandlers =
+   private final ConcurrentMap<String, RequestHandlerRegistry> requestHandlers =
       PlatformDependent.newConcurrentHashMap();
 
-   private static final ConcurrentMap<String, RequestHolder> requestHolders =
+   private final ConcurrentMap<String, RequestHolder> requestHolders =
       PlatformDependent.newConcurrentHashMap();
 
-   public static void addChannel(Channel channel) {
+   public void addChannel(Channel channel) {
       channels.add(channel);
    }
 
-   public static <Request extends TransportRequest> void
+   public <Request extends TransportRequest> void
       registerRequestHandler(String action,
                              Class<Request> request,
                              TransportRequestHandler<Request> handler)
@@ -40,18 +42,18 @@ public class TransportService {
       requestHandlers.put(action, registry);
    }
 
-   public static RequestHandlerRegistry<?> getRequestHandler(String action) {
+   public RequestHandlerRegistry<?> getRequestHandler(String action) {
       return requestHandlers.get(action);
    }
 
-   public static TransportResponseHandler<?>
+   public TransportResponseHandler<?>
       onResponseReceived(final String messageId)
    {
       RequestHolder<?> holder = requestHolders.remove(messageId);
       return holder.handler();
    }
 
-   public static <Response extends TransportResponse> void
+   public <Response extends TransportResponse> void
       sendRequest(final ChannelId channelId,
                   final String action,
                   final TransportRequest request,
@@ -67,7 +69,6 @@ public class TransportService {
             .setType(TransportType.REQUEST.getType())
             .setAction(action)
             .setMessage(message);
-
          requestHolders.put(messageId, new RequestHolder<>(handler, action));
          channels.find(channelId).writeAndFlush(builder.build());
       }

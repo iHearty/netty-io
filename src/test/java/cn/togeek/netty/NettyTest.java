@@ -13,7 +13,8 @@ import io.netty.channel.ChannelId;
 
 public class NettyTest {
    public static void main(String[] args) throws SettingsException {
-      TransportService.registerRequestHandler(TestAction.class.getName(),
+      TransportService.INSTANCE.registerRequestHandler(
+         TestAction.class.getName(),
          TestActionRequest.class,
          new TestActionRequestHandler());
 
@@ -31,7 +32,7 @@ public class NettyTest {
                ChannelId channelId = (ChannelId) arg;
 
                try {
-                  TransportService.sendRequest(channelId,
+                  TransportService.INSTANCE.sendRequest(channelId,
                      TestAction.class.getName(),
                      new TestActionRequest(),
                      new TestActionResponseHandler());
