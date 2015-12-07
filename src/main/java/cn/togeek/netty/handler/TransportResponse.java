@@ -1,7 +1,6 @@
 package cn.togeek.netty.handler;
 
-import cn.togeek.netty.Readable;
-import cn.togeek.netty.Writeable;
+import cn.togeek.netty.Streamable;
 
-public interface TransportResponse extends Readable, Writeable {
+public interface TransportResponse extends Streamable {
 }
