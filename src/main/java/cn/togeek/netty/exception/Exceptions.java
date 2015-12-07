@@ -2,16 +2,14 @@ package cn.togeek.netty.exception;
 
 import java.io.EOFException;
 import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.nio.file.NoSuchFileException;
 
 import io.netty.buffer.ByteBuf;
 
 public class Exceptions {
-   public static void writeThrowable(Throwable throwable, ByteBuf out)
-      throws IOException
-   {
+   public static void writeThrowable(Throwable throwable, ByteBuf out) {
       if(throwable == null) {
          out.writeBoolean(false);
       }
@@ -95,18 +93,20 @@ public class Exceptions {
       }
    }
 
-   public static void writeString(String str, ByteBuf out)
-      throws IOException
-   {
+   private static void writeString(String str, ByteBuf out) {
       if(str == null) {
          out.writeBoolean(false);
       }
       else {
          out.writeBoolean(true);
 
-         byte[] bytes = str.getBytes("UTF-8");
-         out.writeInt(bytes.length);
-         out.writeBytes(bytes);
+         try {
+            byte[] bytes = str.getBytes("UTF-8");
+            out.writeInt(bytes.length);
+            out.writeBytes(bytes);
+         }
+         catch(UnsupportedEncodingException e) {
+         }
       }
    }
 
@@ -114,8 +114,8 @@ public class Exceptions {
     * Serializes the given exceptions stacktrace elements as well as it's
     * suppressed exceptions to the given output stream.
     */
-   public static <T extends Throwable> void
-      writeStackTraces(T throwable, ByteBuf out) throws IOException
+   private static <T extends Throwable> void
+      writeStackTraces(T throwable, ByteBuf out)
    {
       StackTraceElement[] stackTrace = throwable.getStackTrace();
       out.writeInt(stackTrace.length);
@@ -136,9 +136,7 @@ public class Exceptions {
    }
 
    @SuppressWarnings("unchecked")
-   public static <T extends Throwable> T readThrowable(ByteBuf in)
-      throws IOException
-   {
+   public static <T extends Throwable> T readThrowable(ByteBuf in) {
       if(in.readBoolean()) {
          int key = in.readInt();
 
@@ -155,6 +153,8 @@ public class Exceptions {
                throwable = readStackTrace(throwable, in);
             }
             catch(Exception e) {
+               throw new RuntimeException(
+                  "no such exception [" + declaringClass + "]");
             }
 
             return throwable;
@@ -210,7 +210,7 @@ public class Exceptions {
       return null;
    }
 
-   public static String readString(ByteBuf in) throws IOException {
+   private static String readString(ByteBuf in) {
       if(in.readBoolean()) {
          final int size = in.readInt();
          byte[] bytes = new byte[size];
@@ -226,8 +226,8 @@ public class Exceptions {
     * given output stream and
     * adds it to the given exception.
     */
-   public static <T extends Throwable> T
-      readStackTrace(T throwable, ByteBuf in) throws IOException
+   private static <T extends Throwable> T readStackTrace(T throwable,
+                                                         ByteBuf in)
    {
       final int stackTraceElements = in.readInt();
       StackTraceElement[] stackTrace =
