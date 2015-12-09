@@ -17,6 +17,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.ReferenceCountUtil;
 
 public class HeartbeatHandler extends SimpleChannelInboundHandler<Message> {
@@ -116,6 +117,18 @@ public class HeartbeatHandler extends SimpleChannelInboundHandler<Message> {
       }
 
       ctx.fireExceptionCaught(cause);
+   }
+
+   @Override
+   public void userEventTriggered(ChannelHandlerContext ctx, Object evt)
+      throws Exception
+   {
+      if(evt instanceof IdleStateEvent) {
+         IdleStateEvent event = (IdleStateEvent) evt;
+         System.out.println(" state === " + event.state());
+      }
+
+      super.userEventTriggered(ctx, evt);
    }
 
    private void writeProps(ByteBuf out) {
