@@ -5,7 +5,7 @@ option java_package = "cn.togeek.netty.rpc";
 option java_outer_classname = "Transport";
 
 message Message {
-   required string id = 1;
+   optional string id = 1;
    optional int32 status = 2;
    optional string action = 3;
    optional bytes message = 4;
