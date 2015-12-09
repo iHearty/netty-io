@@ -22,7 +22,7 @@ public class NettyTest {
    public static void main(String[] args) throws SettingsException {
       TransportService.INSTANCE.registerRequestHandler(
          TestAction.class.getName(),
-         ThreadPool.Names.SAME,
+         ThreadPool.Names.GENERIC,
          TestActionRequest.class,
          new TestActionRequestHandler());
 
@@ -38,15 +38,14 @@ public class NettyTest {
          public void update(Observable observable, Object arg) {
             if(arg instanceof ChannelId) {
                ChannelId channelId = (ChannelId) arg;
+               Thread[] threads = new Thread[100];
 
-               try {
-                  TransportService.INSTANCE.sendRequest(channelId,
-                     TestAction.class.getName(),
-                     new TestActionRequest(),
-                     new TestActionResponseHandler());
+               for(int i = 0; i < threads.length; i++) {
+                  threads[i] = new ActionThread(channelId);
                }
-               catch(IOException e) {
-                  logger.log(Level.SEVERE, e.getMessage(), e);
+
+               for(Thread thread : threads) {
+                  thread.start();
                }
             }
          }
@@ -73,5 +72,26 @@ public class NettyTest {
             }
          }
       }.start();
+   }
+
+   static class ActionThread extends Thread {
+      private ChannelId channelId;
+
+      public ActionThread(ChannelId channelId) {
+         this.channelId = channelId;
+      }
+
+      @Override
+      public void run() {
+         try {
+            TransportService.INSTANCE.sendRequest(channelId,
+               TestAction.class.getName(),
+               new TestActionRequest(),
+               new TestActionResponseHandler());
+         }
+         catch(IOException e) {
+            logger.log(Level.SEVERE, e.getMessage(), e);
+         }
+      }
    }
 }
