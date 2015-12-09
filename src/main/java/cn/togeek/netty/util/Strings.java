@@ -12,8 +12,6 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TreeSet;
 
-import com.sun.istack.internal.Nullable;
-
 public class Strings {
    public static final String[] EMPTY_ARRAY = new String[0];
 
@@ -179,7 +177,7 @@ public class Strings {
     * @return the trimmed String
     */
    public static String trimLeadingCharacter(String str,
-      char leadingCharacter)
+                                             char leadingCharacter)
    {
       if(!hasLength(str)) {
          return str;
@@ -202,8 +200,9 @@ public class Strings {
     * @param index the index in the original string to start matching against
     * @param substring the substring to match at the given index
     */
-   public static boolean substringMatch(CharSequence str, int index,
-      CharSequence substring)
+   public static boolean substringMatch(CharSequence str,
+                                        int index,
+                                        CharSequence substring)
    {
       for(int j = 0; j < substring.length(); j++) {
          int i = index + j;
@@ -248,8 +247,9 @@ public class Strings {
     * @param newPattern String to insert
     * @return a String with the replacements
     */
-   public static String replace(String inString, String oldPattern,
-      String newPattern)
+   public static String replace(String inString,
+                                String oldPattern,
+                                String newPattern)
    {
       if(!hasLength(inString) || !hasLength(oldPattern) || newPattern == null) {
          return inString;
@@ -348,7 +348,7 @@ public class Strings {
    }
 
    private static String changeFirstCharacterCase(String str,
-      boolean capitalize)
+                                                  boolean capitalize)
    {
       if(str == null || str.length() == 0) {
          return str;
@@ -428,7 +428,7 @@ public class Strings {
    }
 
    public static String[] splitStringToArray(final CharSequence s,
-      final char c)
+                                             final char c)
    {
       if(s == null || s.length() == 0) {
          return Strings.EMPTY_ARRAY;
@@ -519,7 +519,8 @@ public class Strings {
     *         <code>null</code> or empty
     */
    public static Properties splitArrayElementsIntoProperties(String[] array,
-      String delimiter, String charsToDelete)
+                                                             String delimiter,
+                                                             String charsToDelete)
    {
       if(isEmpty(array)) {
          return null;
@@ -588,8 +589,10 @@ public class Strings {
     * @see java.lang.String#trim()
     * @see #delimitedListToStringArray
     */
-   public static String[] tokenizeToStringArray(String str, String delimiters,
-      boolean trimTokens, boolean ignoreEmptyTokens)
+   public static String[] tokenizeToStringArray(String str,
+                                                String delimiters,
+                                                boolean trimTokens,
+                                                boolean ignoreEmptyTokens)
    {
       if(str == null) {
          return null;
@@ -628,7 +631,7 @@ public class Strings {
     * @see #tokenizeToStringArray
     */
    public static String[] delimitedListToStringArray(String str,
-      String delimiter)
+                                                     String delimiter)
    {
       return delimitedListToStringArray(str, delimiter, null);
    }
@@ -651,7 +654,8 @@ public class Strings {
     * @see #tokenizeToStringArray
     */
    public static String[] delimitedListToStringArray(String str,
-      String delimiter, String charsToDelete)
+                                                     String delimiter,
+                                                     String charsToDelete)
    {
       if(str == null) {
          return new String[0];
@@ -721,14 +725,19 @@ public class Strings {
     * @return the delimited String
     */
    public static String collectionToDelimitedString(Iterable<?> coll,
-      String delim, String prefix, String suffix)
+                                                    String delim,
+                                                    String prefix,
+                                                    String suffix)
    {
       return collectionToDelimitedString(coll, delim, prefix, suffix,
          new StringBuilder());
    }
 
    public static String collectionToDelimitedString(Iterable<?> coll,
-      String delim, String prefix, String suffix, StringBuilder sb)
+                                                    String delim,
+                                                    String prefix,
+                                                    String suffix,
+                                                    StringBuilder sb)
    {
       Iterator<?> it = coll.iterator();
 
@@ -752,7 +761,7 @@ public class Strings {
     * @return the delimited String
     */
    public static String collectionToDelimitedString(Iterable<?> coll,
-      String delim)
+                                                    String delim)
    {
       return collectionToDelimitedString(coll, delim, "", "");
    }
@@ -780,8 +789,9 @@ public class Strings {
       return arrayToDelimitedString(arr, delim, new StringBuilder());
    }
 
-   public static String arrayToDelimitedString(Object[] arr, String delim,
-      StringBuilder sb)
+   public static String arrayToDelimitedString(Object[] arr,
+                                               String delim,
+                                               StringBuilder sb)
    {
       if(isEmpty(arr)) {
          return "";
@@ -1018,7 +1028,7 @@ public class Strings {
       return s.substring(0, length);
    }
 
-   public static String coalesceToEmpty(@Nullable String s) {
+   public static String coalesceToEmpty(String s) {
       return s == null ? "" : s;
    }
 
