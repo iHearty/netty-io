@@ -65,7 +65,7 @@ public class MessageHandler extends SimpleChannelInboundHandler<Message> {
       }
    }
 
-   @SuppressWarnings({"rawtypes", "unchecked"})
+   @SuppressWarnings({"rawtypes"})
    private void handleRequest(Channel channel,
                               String messageId,
                               String action,
@@ -83,7 +83,8 @@ public class MessageHandler extends SimpleChannelInboundHandler<Message> {
          request.readFrom(input);
 
          if(ThreadPool.Names.SAME.equals(registry.getExecutor())) {
-            registry.getHandler().handle(request, transportChannel);
+            channel.eventLoop().execute(
+               new RequestHandler(registry, request, transportChannel));
          }
          else {
             ThreadPool.INSTANCE.executor(
@@ -117,33 +118,26 @@ public class MessageHandler extends SimpleChannelInboundHandler<Message> {
       }
 
       final RemoteTransportException rtx = (RemoteTransportException) error;
+      final Runnable run = new Runnable() {
+         @Override
+         public void run() {
+            try {
+               handler.handleException(rtx);
+            }
+            catch(Throwable e) {
+               logger.log(Level.SEVERE,
+                  "failed to handle exception response [" + e.getMessage()
+                     + "]",
+                  e);
+            }
+         }
+      };
 
       if(ThreadPool.Names.SAME.equals(handler.executor())) {
-         try {
-            handler.handleException(rtx);
-         }
-         catch(Throwable e) {
-            logger.log(Level.SEVERE,
-               "failed to handle exception response [" + e.getMessage() + "]",
-               e);
-         }
+         handler.handleException(rtx);
       }
       else {
-         ThreadPool.INSTANCE.executor(handler.executor())
-            .execute(new Runnable() {
-               @Override
-               public void run() {
-                  try {
-                     handler.handleException(rtx);
-                  }
-                  catch(Throwable e) {
-                     logger.log(Level.SEVERE,
-                        "failed to handle exception response [" + e.getMessage()
-                           + "]",
-                        e);
-                  }
-               }
-            });
+         ThreadPool.INSTANCE.executor(handler.executor()).execute(run);
       }
    }
 
@@ -172,12 +166,14 @@ public class MessageHandler extends SimpleChannelInboundHandler<Message> {
 
       try {
          try {
+            ResponseHandler resHandler = new ResponseHandler(handler, response);
+
             if(ThreadPool.Names.SAME.equals(handler.executor())) {
-               handler.handleResponse(response);
+               channel.eventLoop().execute(resHandler);
             }
             else {
                ThreadPool.INSTANCE.executor(handler.executor())
-                  .execute(new ResponseHandler(handler, response));
+                  .execute(resHandler);
             }
          }
          catch(Throwable e) {

@@ -5,6 +5,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import com.google.protobuf.ByteString;
 
+import cn.togeek.netty.concurrent.ThreadPool;
 import cn.togeek.netty.exception.SendRequestTransportException;
 import cn.togeek.netty.rpc.Transport.Message;
 import cn.togeek.netty.rpc.TransportStatus;
@@ -86,7 +87,7 @@ public class TransportService {
             final SendRequestTransportException sendRequestException =
                new SendRequestTransportException(action, e);
 
-            channels.find(channelId).eventLoop().execute(new Runnable() {
+            ThreadPool.INSTANCE.generic().execute(new Runnable() {
                @Override
                public void run() {
                   holder.handler().handleException(sendRequestException);
