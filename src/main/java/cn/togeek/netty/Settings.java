@@ -17,9 +17,8 @@ public final class Settings {
 
    private Settings(Map<String, String> settings) {
       // we use a sorted map for consistent serialization when using getAsMap()
-      this.settings =
-         Collections
-            .unmodifiableSortedMap(new TreeMap<String, String>(settings));
+      this.settings = Collections.unmodifiableSortedMap(
+         new TreeMap<String, String>(settings));
    }
 
    public static Builder builder() {

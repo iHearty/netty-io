@@ -8,42 +8,22 @@ import java.util.concurrent.ThreadPoolExecutor.DiscardOldestPolicy;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import cn.togeek.netty.Settings;
 import cn.togeek.netty.exception.SettingsException;
 
 public class Executors {
-   /**
-    * Settings key to manually set the number of available processors.
-    * This is used to adjust thread pools sizes etc. per node.
-    */
-   public static final String PROCESSORS = "processors";
-
-   /** Useful for testing */
-   public static final String DEFAULT_SYSPROP = "processors.override";
-
    /**
     * Returns the number of processors available but at most <tt>32</tt>.
     * 
     * @throws SettingsException
     */
-   public static int boundedNumberOfProcessors(Settings settings) {
+   public static int boundedNumberOfProcessors() {
       /*
        * This relates to issues where machines with large number of cores
        * ie. >= 48 create too many threads and run into OOM see #3478
        * We just use an 32 core upper-bound here to not stress the system
        * too much with too many created threads
        */
-      int defaultValue =
-         Math.min(32, Runtime.getRuntime().availableProcessors());
-
-      try {
-         defaultValue = Integer.parseInt(System.getProperty(DEFAULT_SYSPROP));
-         return settings.getAsInt(PROCESSORS, defaultValue);
-      }
-      catch(Throwable ignored) {
-      }
-
-      return defaultValue;
+      return Math.min(32, Runtime.getRuntime().availableProcessors());
    }
 
    public static ThreadPoolExecutor newCached(String name,
@@ -92,27 +72,12 @@ public class Executors {
       return executor;
    }
 
-   public static String threadName(Settings settings, String namePrefix) {
-      String name = settings.get("name");
-
-      if(name == null) {
-         name = "netty";
-      }
-      else {
-         name = "netty[" + name + "]";
-      }
-
-      return name + "[" + namePrefix + "]";
+   public static String threadName(String name) {
+      return "netty[" + name + "]";
    }
 
-   public static ThreadFactory daemonThreadFactory(Settings settings,
-                                                   String namePrefix)
-   {
-      return daemonThreadFactory(threadName(settings, namePrefix));
-   }
-
-   public static ThreadFactory daemonThreadFactory(String namePrefix) {
-      return new ThreadFactory(namePrefix);
+   public static ThreadFactory daemonThreadFactory(String name) {
+      return new ThreadFactory(threadName(name));
    }
 
    static class ThreadFactory implements java.util.concurrent.ThreadFactory {

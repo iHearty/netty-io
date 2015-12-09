@@ -8,4 +8,6 @@ public interface TransportResponseHandler<Response extends TransportResponse> {
    void handleResponse(Response response);
 
    void handleException(TransportException exception);
+
+   String executor();
 }

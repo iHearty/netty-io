@@ -6,6 +6,8 @@ import java.util.logging.Logger;
 
 import com.google.protobuf.ByteString;
 
+import cn.togeek.netty.concurrent.AbstractRunnable;
+import cn.togeek.netty.concurrent.ThreadPool;
 import cn.togeek.netty.exception.Exceptions;
 import cn.togeek.netty.exception.RemoteTransportException;
 import cn.togeek.netty.exception.ResponseHandlerFailureTransportException;
@@ -20,9 +22,9 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.ReferenceCountUtil;
 
-public class TransportHandler extends SimpleChannelInboundHandler<Message> {
+public class MessageHandler extends SimpleChannelInboundHandler<Message> {
    private static final Logger logger = Logger
-      .getLogger(TransportHandler.class.getName());
+      .getLogger(MessageHandler.class.getName());
 
    @Override
    @SuppressWarnings({"rawtypes"})
@@ -79,7 +81,15 @@ public class TransportHandler extends SimpleChannelInboundHandler<Message> {
          TransportRequest request = registry.newRequest();
          input = Unpooled.copiedBuffer(message.asReadOnlyByteBuffer());
          request.readFrom(input);
-         registry.getHandler().handle(request, transportChannel);
+
+         if(ThreadPool.Names.SAME.equals(registry.getExecutor())) {
+            registry.getHandler().handle(request, transportChannel);
+         }
+         else {
+            ThreadPool.INSTANCE.executor(
+               registry.getExecutor()).execute(
+                  new RequestHandler(registry, request, transportChannel));
+         }
       }
       catch(Throwable e) {
          try {
@@ -99,7 +109,7 @@ public class TransportHandler extends SimpleChannelInboundHandler<Message> {
    }
 
    @SuppressWarnings("rawtypes")
-   private void handleException(TransportResponseHandler handler,
+   private void handleException(final TransportResponseHandler handler,
                                 Throwable error)
    {
       if(!(error instanceof RemoteTransportException)) {
@@ -107,7 +117,34 @@ public class TransportHandler extends SimpleChannelInboundHandler<Message> {
       }
 
       final RemoteTransportException rtx = (RemoteTransportException) error;
-      handler.handleException(rtx);
+
+      if(ThreadPool.Names.SAME.equals(handler.executor())) {
+         try {
+            handler.handleException(rtx);
+         }
+         catch(Throwable e) {
+            logger.log(Level.SEVERE,
+               "failed to handle exception response [" + e.getMessage() + "]",
+               e);
+         }
+      }
+      else {
+         ThreadPool.INSTANCE.executor(handler.executor())
+            .execute(new Runnable() {
+               @Override
+               public void run() {
+                  try {
+                     handler.handleException(rtx);
+                  }
+                  catch(Throwable e) {
+                     logger.log(Level.SEVERE,
+                        "failed to handle exception response [" + e.getMessage()
+                           + "]",
+                        e);
+                  }
+               }
+            });
+      }
    }
 
    @SuppressWarnings({"rawtypes", "unchecked"})
@@ -134,11 +171,86 @@ public class TransportHandler extends SimpleChannelInboundHandler<Message> {
       }
 
       try {
-         handler.handleResponse(response);
+         try {
+            if(ThreadPool.Names.SAME.equals(handler.executor())) {
+               handler.handleResponse(response);
+            }
+            else {
+               ThreadPool.INSTANCE.executor(handler.executor())
+                  .execute(new ResponseHandler(handler, response));
+            }
+         }
+         catch(Throwable e) {
+            handleException(handler,
+               new ResponseHandlerFailureTransportException(e));
+         }
       }
       catch(Throwable e) {
          handleException(handler,
             new ResponseHandlerFailureTransportException(e));
+      }
+   }
+
+   class ResponseHandler implements Runnable {
+      private final TransportResponseHandler handler;
+
+      private final TransportResponse response;
+
+      public ResponseHandler(TransportResponseHandler handler,
+                             TransportResponse response)
+      {
+         this.handler = handler;
+         this.response = response;
+      }
+
+      @SuppressWarnings({"unchecked"})
+      @Override
+      public void run() {
+         try {
+            handler.handleResponse(response);
+         }
+         catch(Throwable e) {
+            handleException(handler,
+               new ResponseHandlerFailureTransportException(e));
+         }
+      }
+   }
+
+   class RequestHandler extends AbstractRunnable {
+      private final RequestHandlerRegistry registry;
+
+      private final TransportRequest request;
+
+      private final NettyTransportChannel transportChannel;
+
+      public RequestHandler(RequestHandlerRegistry registry,
+                            TransportRequest request,
+                            NettyTransportChannel transportChannel)
+      {
+         this.registry = registry;
+         this.request = request;
+         this.transportChannel = transportChannel;
+      }
+
+      @SuppressWarnings({"unchecked"})
+      @Override
+      protected void doRun() throws Exception {
+         registry.getHandler().handle(request, transportChannel);
+      }
+
+      @Override
+      public void onFailure(Throwable e) {
+         // we can only send a response transport is started....
+         try {
+            transportChannel.sendResponse(e);
+         }
+         catch(Throwable ex) {
+            logger.log(Level.WARNING,
+               "Failed to send error message back to client for action ["
+                  + registry.getAction() + "]",
+               ex);
+            logger.log(Level.WARNING, "Actual Exception", e);
+         }
       }
    }
 }

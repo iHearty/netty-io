@@ -7,6 +7,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import cn.togeek.netty.client.TransportClient;
+import cn.togeek.netty.concurrent.ThreadPool;
 import cn.togeek.netty.exception.SettingsException;
 import cn.togeek.netty.handler.GlobalObservable;
 import cn.togeek.netty.handler.TransportService;
@@ -21,6 +22,7 @@ public class NettyTest {
    public static void main(String[] args) throws SettingsException {
       TransportService.INSTANCE.registerRequestHandler(
          TestAction.class.getName(),
+         ThreadPool.Names.SAME,
          TestActionRequest.class,
          new TestActionRequestHandler());
 

@@ -37,11 +37,12 @@ public class TransportService {
 
    public <Request extends TransportRequest> void
       registerRequestHandler(String action,
+                             String executor,
                              Class<Request> request,
                              TransportRequestHandler<Request> handler)
    {
       RequestHandlerRegistry<Request> registry =
-         new RequestHandlerRegistry<>(action, request, handler);
+         new RequestHandlerRegistry<>(action, executor, request, handler);
       requestHandlers.put(action, registry);
    }
 

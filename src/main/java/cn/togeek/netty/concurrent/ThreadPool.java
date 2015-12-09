@@ -10,6 +10,8 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import cn.togeek.netty.Settings;
 import cn.togeek.netty.exception.SettingsException;
@@ -113,29 +115,24 @@ public class ThreadPool {
       }
    }
 
-   public static final String THREADPOOL_GROUP = "threadpool.";
+   public static ThreadPool INSTANCE = new ThreadPool();
 
-   private volatile Map<String, ExecutorHolder> executors;
-
-   private final ScheduledThreadPoolExecutor scheduler;
-
-   private Settings settings;
-
-   static final Executor DIRECT_EXECUTOR = new Executor() {
+   private static final Executor DIRECT_EXECUTOR = new Executor() {
       @Override
       public void execute(Runnable command) {
          command.run();
       }
    };
 
-   public ThreadPool(String name) throws SettingsException {
-      this(Settings.builder().put("name", name).build());
-   }
+   private static final Logger logger = Logger
+      .getLogger(ThreadPool.class.getName());
 
-   public ThreadPool(Settings settings) throws SettingsException {
-      this.settings = settings;
+   private volatile Map<String, ExecutorHolder> executors;
 
-      int availableProcessors = Executors.boundedNumberOfProcessors(settings);
+   private final ScheduledThreadPoolExecutor scheduler;
+
+   private ThreadPool() {
+      int availableProcessors = Executors.boundedNumberOfProcessors();
       int halfProcMaxAt10 = Math.min(((availableProcessors + 1) / 2), 10);
       Map<String, Settings> defaultExecutorTypeSettings = new HashMap<>();
       add(defaultExecutorTypeSettings,
@@ -161,7 +158,7 @@ public class ThreadPool {
 
       this.executors = Collections.unmodifiableMap(executors);
       this.scheduler = new ScheduledThreadPoolExecutor(1,
-         Executors.daemonThreadFactory(settings, "scheduler"),
+         Executors.daemonThreadFactory("scheduler"),
          new AbortPolicy());
       this.scheduler.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
       this.scheduler.setContinueExistingPeriodicTasksAfterShutdownPolicy(false);
@@ -243,53 +240,53 @@ public class ThreadPool {
       return result;
    }
 
-   private ExecutorHolder build(String name, Settings defaultSettings)
-      throws SettingsException
-   {
-      if(settings == null) {
-         settings = Settings.EMPTY;
-      }
-
+   private ExecutorHolder build(String name, Settings defaultSettings) {
       String type = defaultSettings.get("type", Names.SAME);
       ThreadPoolType threadPoolType = ThreadPoolType.fromType(type);
-      ThreadFactory threadFactory =
-         Executors.daemonThreadFactory(this.settings, name);
+      ThreadFactory threadFactory = Executors.daemonThreadFactory(name);
 
-      if(ThreadPoolType.DIRECT == threadPoolType) {
-         return new ExecutorHolder(DIRECT_EXECUTOR,
-            new Info(name, threadPoolType));
-      }
-      else if(ThreadPoolType.CACHED == threadPoolType) {
-         if(!Names.GENERIC.equals(name)) {
-            throw new IllegalArgumentException(
-               "thread pool type cached is reserved only for the generic "
-                  + "thread pool and can not be applied to [" + name + "]");
+      try {
+         if(ThreadPoolType.DIRECT == threadPoolType) {
+            return new ExecutorHolder(DIRECT_EXECUTOR,
+               new Info(name, threadPoolType));
          }
+         else if(ThreadPoolType.CACHED == threadPoolType) {
+            if(!Names.GENERIC.equals(name)) {
+               throw new IllegalArgumentException(
+                  "thread pool type cached is reserved only for the generic "
+                     + "thread pool and can not be applied to [" + name + "]");
+            }
 
-         int keepAlive = defaultSettings.getAsInt("keep_alive", 5 * 60 * 1000);
-         Executor executor = Executors.newCached(name, keepAlive,
-            TimeUnit.MILLISECONDS, threadFactory);
-         return new ExecutorHolder(executor,
-            new Info(name, threadPoolType, -1, -1, keepAlive, null));
+            int keepAlive =
+               defaultSettings.getAsInt("keep_alive", 5 * 60 * 1000);
+            Executor executor = Executors.newCached(name, keepAlive,
+               TimeUnit.MILLISECONDS, threadFactory);
+            return new ExecutorHolder(executor,
+               new Info(name, threadPoolType, -1, -1, keepAlive, null));
+         }
+         else if(ThreadPoolType.FIXED == threadPoolType) {
+            int size = defaultSettings.getAsInt("size",
+               Executors.boundedNumberOfProcessors());
+            int queueSize = defaultSettings.getAsInt("queue_size", 1000);
+            Executor executor =
+               Executors.newFixed(name, size, queueSize, threadFactory);
+            return new ExecutorHolder(executor,
+               new Info(name, threadPoolType, size, size, null, queueSize));
+         }
+         else if(ThreadPoolType.SCALING == threadPoolType) {
+            int min = defaultSettings.getAsInt("min", 1);
+            int size = defaultSettings.getAsInt("size",
+               Executors.boundedNumberOfProcessors());
+            int keepAlive =
+               defaultSettings.getAsInt("keep_alive", 5 * 60 * 1000);
+            Executor executor = Executors.newScaling(name, min, size,
+               keepAlive, TimeUnit.MILLISECONDS, threadFactory);
+            return new ExecutorHolder(executor,
+               new Info(name, threadPoolType, min, size, keepAlive, null));
+         }
       }
-      else if(ThreadPoolType.FIXED == threadPoolType) {
-         int size = defaultSettings.getAsInt("size",
-            Executors.boundedNumberOfProcessors(settings));
-         int queueSize = defaultSettings.getAsInt("queue_size", 1000);
-         Executor executor =
-            Executors.newFixed(name, size, queueSize, threadFactory);
-         return new ExecutorHolder(executor,
-            new Info(name, threadPoolType, size, size, null, queueSize));
-      }
-      else if(ThreadPoolType.SCALING == threadPoolType) {
-         int min = defaultSettings.getAsInt("min", 1);
-         int size = defaultSettings.getAsInt("size",
-            Executors.boundedNumberOfProcessors(settings));
-         int keepAlive = defaultSettings.getAsInt("keep_alive", 5 * 60 * 1000);
-         Executor executor = Executors.newScaling(name, min, size,
-            keepAlive, TimeUnit.MILLISECONDS, threadFactory);
-         return new ExecutorHolder(executor,
-            new Info(name, threadPoolType, min, size, keepAlive, null));
+      catch(SettingsException e) {
+         logger.log(Level.SEVERE, "settings error", e);
       }
 
       throw new IllegalArgumentException(

@@ -1,5 +1,6 @@
 package cn.togeek.netty;
 
+import cn.togeek.netty.concurrent.ThreadPool;
 import cn.togeek.netty.exception.TransportException;
 import cn.togeek.netty.handler.TransportResponseHandler;
 
@@ -20,5 +21,10 @@ public class TestActionResponseHandler
    public void handleException(TransportException exception) {
       System.out.println(
          " handle response exeption " + exception.getCause());
+   }
+
+   @Override
+   public String executor() {
+      return ThreadPool.Names.SAME;
    }
 }

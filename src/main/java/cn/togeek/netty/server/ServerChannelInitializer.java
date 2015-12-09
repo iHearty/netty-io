@@ -3,7 +3,7 @@ package cn.togeek.netty.server;
 import com.google.protobuf.MessageLite;
 
 import cn.togeek.netty.handler.ChannelRegistryHandler;
-import cn.togeek.netty.handler.TransportHandler;
+import cn.togeek.netty.handler.MessageHandler;
 
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -31,6 +31,6 @@ public class ServerChannelInitializer
          new ProtobufVarint32LengthFieldPrepender());
       pipeline.addLast("protobufEncoder", new ProtobufEncoder());
       pipeline.addLast("registry", new ChannelRegistryHandler());
-      pipeline.addLast("handler", new TransportHandler());
+      pipeline.addLast("handler", new MessageHandler());
    }
 }
