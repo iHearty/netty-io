@@ -1,5 +1,7 @@
 package cn.togeek.netty.exception;
 
+import cn.togeek.netty.util.ByteBufs;
+
 import io.netty.buffer.ByteBuf;
 
 public class BaseException extends RuntimeException {
@@ -14,8 +16,8 @@ public class BaseException extends RuntimeException {
    }
 
    public void writeTo(ByteBuf out) {
-      Exceptions.writeString(this.getClass().getName(), out);
-      Exceptions.writeString(this.getMessage(), out);
+      ByteBufs.writeString(this.getClass().getName(), out);
+      ByteBufs.writeString(this.getMessage(), out);
       Exceptions.writeThrowable(this.getCause(), out);
       Exceptions.writeStackTraces(this, out);
    }

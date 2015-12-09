@@ -1,5 +1,7 @@
 package cn.togeek.netty.exception;
 
+import cn.togeek.netty.util.ByteBufs;
+
 import io.netty.buffer.ByteBuf;
 
 public class NotSerializableExceptionWrapper extends BaseException {
@@ -29,11 +31,11 @@ public class NotSerializableExceptionWrapper extends BaseException {
    @Override
    public void writeTo(ByteBuf out) {
       super.writeTo(out);
-      Exceptions.writeString(name, out);
+      ByteBufs.writeString(name, out);
    }
 
    @Override
    public void readFrom(ByteBuf in) {
-      this.name = Exceptions.readString(in);
+      this.name = ByteBufs.readString(in);
    }
 }

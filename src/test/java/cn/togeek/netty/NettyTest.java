@@ -26,11 +26,16 @@ public class NettyTest {
          TestActionRequest.class,
          new TestActionRequestHandler());
 
-      final Settings settings = Settings.builder()
+      final Settings serverSettings = Settings.builder()
          .put(TransportServer.SERVER_HOST, "0.0.0.0")
          .put(TransportServer.SERVER_PORT, 9090)
          .build();
       final TransportServer server = new TransportServer();
+
+      final Settings clientSettings = Settings.builder().put(serverSettings)
+         .put(TransportServer.HEARTBEAT_PERIOD, 5000)
+         .put("heartbeat.plantId", 15) // client heartbeat properties
+         .build();
       final TransportClient client = new TransportClient();
 
       GlobalObservable.INSTANCE.addObserver(new Observer() {
@@ -55,7 +60,7 @@ public class NettyTest {
          @Override
          public void run() {
             try {
-               server.start(settings);
+               server.start(serverSettings);
             }
             catch(Exception e) {
             }
@@ -66,7 +71,7 @@ public class NettyTest {
          @Override
          public void run() {
             try {
-               client.start(settings);
+               client.start(clientSettings);
             }
             catch(Exception e) {
             }

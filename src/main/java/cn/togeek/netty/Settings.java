@@ -164,6 +164,35 @@ public final class Settings {
    }
 
    /**
+    * Returns the settings mapped to the given setting name.
+    */
+   public Settings getAsSettings(String setting) {
+      return getByPrefix(setting + ".");
+   }
+
+   /**
+    * A settings that are filtered (and key is removed) with the specified
+    * prefix.
+    */
+   public Settings getByPrefix(String prefix) {
+      Builder builder = new Builder();
+
+      for(Map.Entry<String, String> entry : getAsMap().entrySet()) {
+         if(entry.getKey().startsWith(prefix)) {
+            if(entry.getKey().length() < prefix.length()) {
+               // ignore this. one
+               continue;
+            }
+
+            builder.put(entry.getKey().substring(prefix.length()),
+               entry.getValue());
+         }
+      }
+
+      return builder.build();
+   }
+
+   /**
     * A builder allowing to put different settings and then {@link #build()} an
     * immutable settings implementation. Use {@link Settings#settingsBuilder()}
     * in order to construct it.

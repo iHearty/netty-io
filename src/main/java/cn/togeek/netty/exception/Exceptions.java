@@ -2,9 +2,10 @@ package cn.togeek.netty.exception;
 
 import java.io.EOFException;
 import java.io.FileNotFoundException;
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.nio.file.NoSuchFileException;
+
+import cn.togeek.netty.util.ByteBufs;
 
 import io.netty.buffer.ByteBuf;
 
@@ -54,9 +55,9 @@ public class Exceptions {
          else if(throwable instanceof NoSuchFileException) {
             out.writeInt(10);
             NoSuchFileException exception = (NoSuchFileException) throwable;
-            writeString(exception.getFile(), out);
-            writeString(exception.getOtherFile(), out);
-            writeString(exception.getReason(), out);
+            ByteBufs.writeString(exception.getFile(), out);
+            ByteBufs.writeString(exception.getOtherFile(), out);
+            ByteBufs.writeString(exception.getReason(), out);
             writeCause = false;
          }
          else if(throwable instanceof OutOfMemoryError) {
@@ -90,7 +91,7 @@ public class Exceptions {
          }
 
          if(writeMessage) {
-            writeString(throwable.getMessage(), out);
+            ByteBufs.writeString(throwable.getMessage(), out);
          }
 
          if(writeCause) {
@@ -98,23 +99,6 @@ public class Exceptions {
          }
 
          writeStackTraces(throwable, out);
-      }
-   }
-
-   static void writeString(String str, ByteBuf out) {
-      if(str == null) {
-         out.writeBoolean(false);
-      }
-      else {
-         out.writeBoolean(true);
-
-         try {
-            byte[] bytes = str.getBytes("UTF-8");
-            out.writeInt(bytes.length);
-            out.writeBytes(bytes);
-         }
-         catch(UnsupportedEncodingException e) {
-         }
       }
    }
 
@@ -129,9 +113,9 @@ public class Exceptions {
       out.writeInt(stackTrace.length);
 
       for(StackTraceElement element : stackTrace) {
-         writeString(element.getClassName(), out);
-         writeString(element.getFileName(), out);
-         writeString(element.getMethodName(), out);
+         ByteBufs.writeString(element.getClassName(), out);
+         ByteBufs.writeString(element.getFileName(), out);
+         ByteBufs.writeString(element.getMethodName(), out);
          out.writeInt(element.getLineNumber());
       }
 
@@ -150,7 +134,7 @@ public class Exceptions {
 
          switch(key) {
          case 0 :
-            final String declaringClass = readString(in);
+            final String declaringClass = ByteBufs.readString(in);
             BaseException throwable = null;
 
             try {
@@ -158,7 +142,8 @@ public class Exceptions {
                   (Class<BaseException>) Class.forName(declaringClass);
                Constructor<BaseException> cons =
                   clazz.getConstructor(String.class, Throwable.class);
-               throwable = cons.newInstance(readString(in), readThrowable(in));
+               throwable = cons.newInstance(
+                  ByteBufs.readString(in), readThrowable(in));
                throwable = readStackTrace(throwable, in);
                throwable.readFrom(in);
             }
@@ -170,65 +155,60 @@ public class Exceptions {
             return (T) throwable;
          case 1 :
             return (T) readStackTrace(
-               new NullPointerException(readString(in)), in);
+               new NullPointerException(ByteBufs.readString(in)), in);
          case 2 :
             return (T) readStackTrace(
-               new NumberFormatException(readString(in)), in);
+               new NumberFormatException(ByteBufs.readString(in)), in);
          case 3 :
             return (T) readStackTrace(new IllegalArgumentException(
-               readString(in), readThrowable(in)), in);
+               ByteBufs.readString(in), readThrowable(in)), in);
          case 4 :
-            return (T) readStackTrace(new EOFException(readString(in)), in);
+            return (T) readStackTrace(
+               new EOFException(ByteBufs.readString(in)), in);
          case 5 :
             return (T) readStackTrace(
-               new SecurityException(readString(in), readThrowable(in)), in);
+               new SecurityException(ByteBufs.readString(in),
+                  readThrowable(in)),
+               in);
          case 6 :
             return (T) readStackTrace(
-               new StringIndexOutOfBoundsException(readString(in)), in);
+               new StringIndexOutOfBoundsException(ByteBufs.readString(in)),
+               in);
          case 7 :
             return (T) readStackTrace(
-               new ArrayIndexOutOfBoundsException(readString(in)), in);
+               new ArrayIndexOutOfBoundsException(ByteBufs.readString(in)), in);
          case 8 :
             return (T) readStackTrace(
-               new AssertionError(readString(in), readThrowable(in)), in);
+               new AssertionError(ByteBufs.readString(in), readThrowable(in)),
+               in);
          case 9 :
             return (T) readStackTrace(
-               new FileNotFoundException(readString(in)), in);
+               new FileNotFoundException(ByteBufs.readString(in)), in);
          case 10 :
-            final String file = readString(in);
-            final String other = readString(in);
-            final String reason = readString(in);
-            readString(in); // skip the msg - it's composed from file,
-                            // other and reason
+            final String file = ByteBufs.readString(in);
+            final String other = ByteBufs.readString(in);
+            final String reason = ByteBufs.readString(in);
+            ByteBufs.readString(in); // skip the msg - it's composed from file,
+                                     // other and reason
             return (T) readStackTrace(
                new NoSuchFileException(file, other, reason), in);
          case 11 :
             return (T) readStackTrace(
-               new OutOfMemoryError(readString(in)), in);
+               new OutOfMemoryError(ByteBufs.readString(in)), in);
          case 12 :
             return (T) readStackTrace(
-               new IllegalStateException(readString(in), readThrowable(in)),
+               new IllegalStateException(ByteBufs.readString(in),
+                  readThrowable(in)),
                in);
          case 13 :
             return (T) readStackTrace(
-               new InterruptedException(readString(in)), in);
+               new InterruptedException(ByteBufs.readString(in)), in);
          case 14 :
             return (T) readStackTrace(
-               new ArithmeticException(readString(in)), in);
+               new ArithmeticException(ByteBufs.readString(in)), in);
          default :
             assert false : "no such exception for id: " + key;
          }
-      }
-
-      return null;
-   }
-
-   static String readString(ByteBuf in) {
-      if(in.readBoolean()) {
-         final int size = in.readInt();
-         byte[] bytes = new byte[size];
-         in.readBytes(bytes);
-         return new String(bytes);
       }
 
       return null;
@@ -245,9 +225,9 @@ public class Exceptions {
          new StackTraceElement[stackTraceElements];
 
       for(int i = 0; i < stackTraceElements; i++) {
-         final String declaringClass = readString(in);
-         final String fileName = readString(in);
-         final String methodName = readString(in);
+         final String declaringClass = ByteBufs.readString(in);
+         final String fileName = ByteBufs.readString(in);
+         final String methodName = ByteBufs.readString(in);
          final int lineNumber = in.readInt();
          stackTrace[i] = new StackTraceElement(declaringClass, methodName,
             fileName, lineNumber);
