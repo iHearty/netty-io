@@ -17,6 +17,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.ReferenceCountUtil;
 
@@ -125,7 +126,10 @@ public class HeartbeatHandler extends SimpleChannelInboundHandler<Message> {
    {
       if(evt instanceof IdleStateEvent) {
          IdleStateEvent event = (IdleStateEvent) evt;
-         System.out.println(" state === " + event.state());
+
+         if(event.state() == IdleState.ALL_IDLE) {
+            ctx.close();
+         }
       }
 
       super.userEventTriggered(ctx, evt);

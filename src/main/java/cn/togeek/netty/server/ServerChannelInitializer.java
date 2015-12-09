@@ -41,7 +41,7 @@ public class ServerChannelInitializer
       pipeline.addLast("protobufEncoder", new ProtobufEncoder());
       pipeline.addLast("registry", new ChannelRegistryHandler());
       pipeline.addLast("idle", new IdleStateHandler(0,
-         0, 3, TimeUnit.SECONDS));
+         0, 60, TimeUnit.SECONDS));
       pipeline.addLast("heartbeat",
          new HeartbeatHandler(settings, TransportStatus.setResponse(0)));
       pipeline.addLast("handler", new MessageHandler());

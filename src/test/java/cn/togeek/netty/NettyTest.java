@@ -33,7 +33,7 @@ public class NettyTest {
       final TransportServer server = new TransportServer();
 
       final Settings clientSettings = Settings.builder()
-         .put(TransportServer.SERVER_HOST, "192.168.0.23")
+         .put(TransportServer.SERVER_HOST, "0.0.0.0")
          .put(TransportServer.SERVER_PORT, 9090)
          .put(TransportServer.HEARTBEAT_PERIOD, 5000)
          .put("heartbeat.plantId", 15) // client heartbeat properties
@@ -62,7 +62,7 @@ public class NettyTest {
          @Override
          public void run() {
             try {
-               // server.start(serverSettings);
+               server.start(serverSettings);
             }
             catch(Exception e) {
             }

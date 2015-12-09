@@ -1,5 +1,7 @@
 package cn.togeek.netty.client;
 
+import java.util.concurrent.TimeUnit;
+
 import com.google.protobuf.MessageLite;
 
 import cn.togeek.netty.Settings;
@@ -14,6 +16,7 @@ import io.netty.handler.codec.protobuf.ProtobufDecoder;
 import io.netty.handler.codec.protobuf.ProtobufEncoder;
 import io.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder;
 import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender;
+import io.netty.handler.timeout.IdleStateHandler;
 
 public class ClientChannelInitializer
    extends ChannelInitializer<SocketChannel>
@@ -35,6 +38,8 @@ public class ClientChannelInitializer
       pipeline.addLast("frameEncoder",
          new ProtobufVarint32LengthFieldPrepender());
       pipeline.addLast("protobufEncoder", new ProtobufEncoder());
+      pipeline.addLast("idle", new IdleStateHandler(0,
+         0, 60, TimeUnit.SECONDS));
       pipeline.addLast("heartbeat",
          new HeartbeatHandler(settings, TransportStatus.setRequest(0)));
       pipeline.addLast("handler", new MessageHandler());
