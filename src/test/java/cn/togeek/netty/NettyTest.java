@@ -38,7 +38,7 @@ public class NettyTest {
          public void update(Observable observable, Object arg) {
             if(arg instanceof ChannelId) {
                ChannelId channelId = (ChannelId) arg;
-               Thread[] threads = new Thread[100];
+               Thread[] threads = new Thread[1];
 
                for(int i = 0; i < threads.length; i++) {
                   threads[i] = new ActionThread(channelId);

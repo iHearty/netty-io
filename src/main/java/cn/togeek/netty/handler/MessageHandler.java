@@ -141,7 +141,7 @@ public class MessageHandler extends SimpleChannelInboundHandler<Message> {
       }
    }
 
-   @SuppressWarnings({"rawtypes", "unchecked"})
+   @SuppressWarnings({"rawtypes"})
    private void handleResponse(Channel channel,
                                ByteString message,
                                TransportResponseHandler handler)
