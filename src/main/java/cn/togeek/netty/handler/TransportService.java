@@ -153,7 +153,6 @@ public class TransportService {
    }
 
    class TimeoutHandler implements Runnable {
-
       private final String messageId;
 
       private final long sentTime = System.currentTimeMillis();
@@ -210,7 +209,6 @@ public class TransportService {
    }
 
    static class TimeoutInfoHolder {
-
       private final ChannelId channelId;
 
       private final String action;
