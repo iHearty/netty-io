@@ -2,6 +2,7 @@ package cn.togeek.netty.client;
 
 import com.google.protobuf.MessageLite;
 
+import cn.togeek.netty.Settings;
 import cn.togeek.netty.handler.HeartbeatHandler;
 import cn.togeek.netty.handler.MessageHandler;
 import cn.togeek.netty.rpc.TransportStatus;
@@ -17,9 +18,12 @@ import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender;
 public class ClientChannelInitializer
    extends ChannelInitializer<SocketChannel>
 {
+   private final Settings settings;
+
    private final MessageLite defaultInstance;
 
-   ClientChannelInitializer(MessageLite defaultInstance) {
+   ClientChannelInitializer(Settings settings, MessageLite defaultInstance) {
+      this.settings = settings;
       this.defaultInstance = defaultInstance;
    }
 
@@ -32,7 +36,7 @@ public class ClientChannelInitializer
          new ProtobufVarint32LengthFieldPrepender());
       pipeline.addLast("protobufEncoder", new ProtobufEncoder());
       pipeline.addLast("heartbeat",
-         new HeartbeatHandler(TransportStatus.setRequest(0)));
+         new HeartbeatHandler(settings, TransportStatus.setRequest(0)));
       pipeline.addLast("handler", new MessageHandler());
    }
 }

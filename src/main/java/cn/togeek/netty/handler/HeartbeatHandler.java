@@ -5,6 +5,9 @@ import java.util.concurrent.TimeUnit;
 
 import com.google.protobuf.ByteString;
 
+import cn.togeek.netty.Settings;
+import cn.togeek.netty.TransportBase;
+import cn.togeek.netty.exception.SettingsException;
 import cn.togeek.netty.rpc.Transport.Message;
 import cn.togeek.netty.rpc.TransportStatus;
 
@@ -16,10 +19,18 @@ import io.netty.channel.SimpleChannelInboundHandler;
 public class HeartbeatHandler extends SimpleChannelInboundHandler<Message> {
    private int status;
 
+   private int period = 5000;
+
    private volatile ScheduledFuture<?> heartBeat;
 
-   public HeartbeatHandler(int status) {
+   public HeartbeatHandler(Settings settings, int status) {
       this.status = TransportStatus.setHeartbate(status);
+
+      try {
+         this.period = settings.getAsInt(TransportBase.HEARTBEAT_PERIOD, 5000);
+      }
+      catch(SettingsException e) {
+      }
    }
 
    @Override
@@ -51,7 +62,7 @@ public class HeartbeatHandler extends SimpleChannelInboundHandler<Message> {
                         Unpooled.buffer());
                      context.writeAndFlush(heartbeat);
                   }
-               }, 5000,
+               }, period,
                TimeUnit.MILLISECONDS);
          }
          else {

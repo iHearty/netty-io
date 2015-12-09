@@ -16,6 +16,8 @@ public abstract class TransportBase<T extends AbstractBootstrap<T, ? extends Cha
 
    public static final String SERVER_PORT = "SERVER_PORT";
 
+   public static final String HEARTBEAT_PERIOD = "HEARTBEAT_PERIOD";
+
    protected T bootstrap;
 
    protected abstract void init(Settings settings) throws SettingsException;

@@ -2,6 +2,7 @@ package cn.togeek.netty.server;
 
 import com.google.protobuf.MessageLite;
 
+import cn.togeek.netty.Settings;
 import cn.togeek.netty.handler.ChannelRegistryHandler;
 import cn.togeek.netty.handler.HeartbeatHandler;
 import cn.togeek.netty.handler.MessageHandler;
@@ -18,9 +19,12 @@ import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender;
 public class ServerChannelInitializer
    extends ChannelInitializer<SocketChannel>
 {
+   private final Settings settings;
+
    private final MessageLite defaultInstance;
 
-   ServerChannelInitializer(MessageLite defaultInstance) {
+   ServerChannelInitializer(Settings settings, MessageLite defaultInstance) {
+      this.settings = settings;
       this.defaultInstance = defaultInstance;
    }
 
@@ -34,7 +38,7 @@ public class ServerChannelInitializer
       pipeline.addLast("protobufEncoder", new ProtobufEncoder());
       pipeline.addLast("registry", new ChannelRegistryHandler());
       pipeline.addLast("heartbeat",
-         new HeartbeatHandler(TransportStatus.setResponse(0)));
+         new HeartbeatHandler(settings, TransportStatus.setResponse(0)));
       pipeline.addLast("handler", new MessageHandler());
    }
 }

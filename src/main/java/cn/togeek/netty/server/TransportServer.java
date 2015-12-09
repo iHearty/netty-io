@@ -84,7 +84,7 @@ public class TransportServer extends TransportBase<ServerBootstrap> {
          }
       });
 
-      bootstrap.childHandler(new ServerChannelInitializer(
+      bootstrap.childHandler(new ServerChannelInitializer(settings,
          Transport.Message.getDefaultInstance()));
    }
 }

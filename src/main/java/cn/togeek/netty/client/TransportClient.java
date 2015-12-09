@@ -79,7 +79,7 @@ public class TransportClient extends TransportBase<Bootstrap> {
             settings.getAsInt(SO_RCVBUF, 8192));
       }
 
-      bootstrap.handler(new ClientChannelInitializer(
+      bootstrap.handler(new ClientChannelInitializer(settings,
          Transport.Message.getDefaultInstance()));
    }
 }
