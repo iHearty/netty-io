@@ -5,9 +5,8 @@ import java.util.Map;
 import cn.togeek.netty.Settings;
 
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelId;
 
-public class Node {
+public abstract class Node {
    private Channel channel;
 
    private Settings settings;
@@ -32,16 +31,7 @@ public class Node {
          .build();
    }
 
-   public <T> boolean match(T o) {
-      if(o instanceof ChannelId) {
-         return o == channel.id();
-      }
-      else if(o instanceof Channel) {
-         return o == channel;
-      }
-
-      return false;
-   }
+   public abstract boolean match(Object o);
 
    @Override
    public String toString() {

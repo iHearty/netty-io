@@ -9,6 +9,7 @@ import cn.togeek.netty.rpc.Transport.Message;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelId;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.ChannelGroupFuture;
 import io.netty.channel.group.ChannelMatchers;
@@ -43,7 +44,7 @@ public class NodeService {
       boolean added = channels.add(channel);
 
       if(added) {
-         nodes.add(new Node(channel));
+         nodes.add(new DefaultNode(channel));
          channel.closeFuture().addListener(REMOVE);
       }
    }
@@ -56,7 +57,7 @@ public class NodeService {
       }
    }
 
-   public <T> Node find(T o) {
+   public Node find(Object o) {
       for(Node node : nodes) {
          if(node.match(o)) {
             return node;
@@ -71,6 +72,24 @@ public class NodeService {
 
       if(node != null) {
          node.update(props);
+      }
+   }
+
+   private class DefaultNode extends Node {
+      public DefaultNode(Channel channel) {
+         super(channel);
+      }
+
+      @Override
+      public boolean match(Object o) {
+         if(o instanceof ChannelId) {
+            return o == channel().id();
+         }
+         else if(o instanceof Channel) {
+            return o == channel();
+         }
+
+         return false;
       }
    }
 }
