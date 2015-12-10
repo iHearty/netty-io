@@ -17,19 +17,12 @@ import cn.togeek.netty.rpc.TransportStatus;
 import cn.togeek.netty.util.Strings;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelId;
-import io.netty.channel.group.ChannelGroup;
-import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.util.ReferenceCountUtil;
-import io.netty.util.concurrent.GlobalEventExecutor;
 import io.netty.util.internal.PlatformDependent;
 
 public class TransportService {
    public static final TransportService INSTANCE = new TransportService();
-
-   private final ChannelGroup channels = new DefaultChannelGroup(
-      GlobalEventExecutor.INSTANCE);
 
    private final ConcurrentMap<String, RequestHandlerRegistry> requestHandlers =
       PlatformDependent.newConcurrentHashMap();
@@ -50,10 +43,6 @@ public class TransportService {
                return size() > 100;
             }
          });
-
-   public void addChannel(Channel channel) {
-      channels.add(channel);
-   }
 
    public <Request extends TransportRequest> void
       registerRequestHandler(String action,
@@ -129,7 +118,8 @@ public class TransportService {
 
          requestHolders.put(messageId,
             new RequestHolder<>(channelId, handler, action, timeoutHandler));
-         channels.find(channelId).writeAndFlush(builder.build());
+         NodeService.INSTANCE.find(channelId).channel()
+            .writeAndFlush(builder.build());
       }
       catch(Throwable e) {
          final RequestHolder<?> holder = requestHolders.remove(messageId);
