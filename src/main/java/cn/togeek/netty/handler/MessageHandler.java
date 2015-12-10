@@ -75,11 +75,11 @@ public class MessageHandler extends SimpleChannelInboundHandler<Message> {
          TransportService.INSTANCE.getRequestHandler(action);
       final NettyTransportChannel transportChannel =
          new NettyTransportChannel(messageId, action, channel);
-      ByteBuf input = null;
+      final ByteBuf input =
+         Unpooled.copiedBuffer(message.asReadOnlyByteBuffer());
 
       try {
          TransportRequest request = registry.newRequest();
-         input = Unpooled.copiedBuffer(message.asReadOnlyByteBuffer());
          request.readFrom(input);
 
          if(ThreadPool.Names.SAME.equals(registry.getExecutor())) {
@@ -147,10 +147,10 @@ public class MessageHandler extends SimpleChannelInboundHandler<Message> {
                                TransportResponseHandler handler)
    {
       final TransportResponse response = handler.newInstance();
-      ByteBuf input = null;
+      final ByteBuf input =
+         Unpooled.copiedBuffer(message.asReadOnlyByteBuffer());
 
       try {
-         input = Unpooled.copiedBuffer(message.asReadOnlyByteBuffer());
          response.readFrom(input);
       }
       catch(Throwable e) {

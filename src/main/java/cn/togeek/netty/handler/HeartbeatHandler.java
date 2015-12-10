@@ -85,22 +85,15 @@ public class HeartbeatHandler extends SimpleChannelInboundHandler<Message> {
          }
          // server
          else {
-            ByteBuf in = null;
-
-            try {
-               if(!message.getMessage().isEmpty()) {
-                  in = Unpooled
-                     .copiedBuffer(message.getMessage().asReadOnlyByteBuffer());
-                  readProps(in);
-               }
-
-               Message heartbeat =
-                  buildMessage(TransportStatus.setRequest(status));
-               context.writeAndFlush(heartbeat);
+            if(!message.getMessage().isEmpty()) {
+               ByteBuf in = Unpooled.copiedBuffer(
+                  message.getMessage().asReadOnlyByteBuffer());
+               readProps(in);
             }
-            finally {
-               ReferenceCountUtil.release(in);
-            }
+
+            Message heartbeat =
+               buildMessage(TransportStatus.setRequest(status));
+            context.writeAndFlush(heartbeat);
          }
       }
       else {
@@ -146,15 +139,20 @@ public class HeartbeatHandler extends SimpleChannelInboundHandler<Message> {
    }
 
    private void readProps(ByteBuf in) {
-      int size = in.readInt();
+      try {
+         int size = in.readInt();
 
-      Settings.Builder builder = Settings.builder().put(props);
+         Settings.Builder builder = Settings.builder().put(props);
 
-      for(int i = 0; i < size; i++) {
-         builder.put(ByteBufs.readString(in), ByteBufs.readString(in));
+         for(int i = 0; i < size; i++) {
+            builder.put(ByteBufs.readString(in), ByteBufs.readString(in));
+         }
+
+         props = builder.build();
       }
-
-      props = builder.build();
+      finally {
+         ReferenceCountUtil.release(in);
+      }
    }
 
    private Message buildMessage(int status) {
