@@ -1,24 +1,25 @@
 package cn.togeek.netty.handler;
 
+import java.lang.reflect.Constructor;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
-import cn.togeek.netty.rpc.Transport.Message;
+import cn.togeek.netty.Settings;
+import cn.togeek.netty.util.Strings;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelId;
 import io.netty.channel.group.ChannelGroup;
-import io.netty.channel.group.ChannelGroupFuture;
-import io.netty.channel.group.ChannelMatchers;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import io.netty.util.internal.ConcurrentSet;
 
 public class NodeService {
    public static final NodeService INSTANCE = new NodeService();
+
+   public static final String NODE_CLASS = "NODE_CLASS";
 
    private final ChannelFutureListener REMOVE = new ChannelFutureListener() {
       @Override
@@ -36,24 +37,38 @@ public class NodeService {
       return Collections.unmodifiableSet(nodes);
    }
 
-   public ChannelGroupFuture writeAndFlush(Message message) {
-      return channels.writeAndFlush(message, ChannelMatchers.all());
-   }
-
-   public void register(Channel channel) {
+   public void register(Settings settings, Channel channel) {
       boolean added = channels.add(channel);
 
       if(added) {
-         nodes.add(new DefaultNode(channel));
+         Node node;
+         String className = settings.get(NODE_CLASS);
+
+         if(Strings.isEmpty(className)) {
+            node = new Node(channel);
+         }
+         else {
+            try {
+               Class<Node> clazz = (Class<Node>) Class.forName(className);
+               Constructor<Node> constructor =
+                  clazz.getConstructor(Channel.class);
+               node = constructor.newInstance(channel);
+            }
+            catch(Exception e) {
+               node = new Node(channel);
+            }
+         }
+
+         nodes.add(node);
          channel.closeFuture().addListener(REMOVE);
       }
    }
 
    public void deregister(Channel channel) {
-      for(Node node : nodes) {
-         if(node.channel().id() == channel.id()) {
-            nodes.remove(node);
-         }
+      Node node = find(channel);
+
+      if(node != null) {
+         nodes.remove(node);
       }
    }
 
@@ -72,24 +87,6 @@ public class NodeService {
 
       if(node != null) {
          node.update(props);
-      }
-   }
-
-   private class DefaultNode extends Node {
-      public DefaultNode(Channel channel) {
-         super(channel);
-      }
-
-      @Override
-      public boolean match(Object o) {
-         if(o instanceof ChannelId) {
-            return o == channel().id();
-         }
-         else if(o instanceof Channel) {
-            return o == channel();
-         }
-
-         return false;
       }
    }
 }

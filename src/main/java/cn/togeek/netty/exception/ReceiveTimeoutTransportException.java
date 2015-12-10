@@ -1,14 +1,14 @@
 package cn.togeek.netty.exception;
 
-import io.netty.channel.ChannelId;
+import cn.togeek.netty.handler.Node;
 
 public class ReceiveTimeoutTransportException extends ActionTransportException {
    private static final long serialVersionUID = 1L;
 
-   public ReceiveTimeoutTransportException(ChannelId channelId,
+   public ReceiveTimeoutTransportException(Node node,
                                            String action,
                                            String msg)
    {
-      super(channelId.asShortText(), action, msg, null);
+      super(node.name(), action, msg, null);
    }
 }

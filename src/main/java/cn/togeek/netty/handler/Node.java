@@ -3,17 +3,29 @@ package cn.togeek.netty.handler;
 import java.util.Map;
 
 import cn.togeek.netty.Settings;
+import cn.togeek.netty.rpc.Transport.Message;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelId;
 
-public abstract class Node {
+public class Node {
    private Channel channel;
 
    private Settings settings;
 
-   public Node(Channel channel) {
-      this.channel = channel;
+   public Node() {
       this.settings = Settings.EMPTY;
+   }
+
+   public Node(Channel channel) {
+      this();
+      this.channel = channel;
+   }
+
+   // TODO
+   public String name() {
+      return channel.id().asShortText();
    }
 
    public Channel channel() {
@@ -31,7 +43,20 @@ public abstract class Node {
          .build();
    }
 
-   public abstract boolean match(Object o);
+   public boolean match(Object o) {
+      if(o instanceof ChannelId) {
+         return o == channel().id();
+      }
+      else if(o instanceof Channel) {
+         return o == channel();
+      }
+
+      return false;
+   }
+
+   public ChannelFuture writeAndFlush(Message message) {
+      return channel.writeAndFlush(message);
+   }
 
    @Override
    public String toString() {

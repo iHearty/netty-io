@@ -90,6 +90,8 @@ public class HeartbeatHandler extends SimpleChannelInboundHandler<Message> {
                   message.getMessage().asReadOnlyByteBuffer());
                readProps(in);
                NodeService.INSTANCE.update(context.channel(), props.getAsMap());
+               GlobalObservable.INSTANCE
+                  .notifyObservers(GlobalObservable.Types.CONNECTED);
             }
 
             Message heartbeat =

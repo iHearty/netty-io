@@ -5,7 +5,6 @@ import java.util.concurrent.TimeUnit;
 import com.google.protobuf.MessageLite;
 
 import cn.togeek.netty.Settings;
-import cn.togeek.netty.handler.ChannelRegistryHandler;
 import cn.togeek.netty.handler.HeartbeatHandler;
 import cn.togeek.netty.handler.MessageHandler;
 import cn.togeek.netty.rpc.TransportStatus;
@@ -39,7 +38,7 @@ public class ServerChannelInitializer
       pipeline.addLast("frameEncoder",
          new ProtobufVarint32LengthFieldPrepender());
       pipeline.addLast("protobufEncoder", new ProtobufEncoder());
-      pipeline.addLast("registry", new ChannelRegistryHandler());
+      pipeline.addLast("registry", new ChannelRegistryHandler(settings));
       pipeline.addLast("idle", new IdleStateHandler(0,
          0, 60, TimeUnit.SECONDS));
       pipeline.addLast("heartbeat",

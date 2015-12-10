@@ -17,7 +17,6 @@ import cn.togeek.netty.rpc.TransportStatus;
 import cn.togeek.netty.util.Strings;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelId;
 import io.netty.util.ReferenceCountUtil;
 import io.netty.util.internal.PlatformDependent;
 
@@ -73,17 +72,17 @@ public class TransportService {
    }
 
    public <Response extends TransportResponse> void
-      sendRequest(final ChannelId channelId,
+      sendRequest(final Node node,
                   final String action,
                   final TransportRequest request,
                   TransportResponseHandler<Response> handler)
                      throws IOException
    {
-      sendRequest(channelId, action, request, null, handler);
+      sendRequest(node, action, request, null, handler);
    }
 
    public <Response extends TransportResponse> void
-      sendRequest(final ChannelId channelId,
+      sendRequest(final Node node,
                   final String action,
                   final TransportRequest request,
                   final Integer timeout,
@@ -117,9 +116,8 @@ public class TransportService {
          }
 
          requestHolders.put(messageId,
-            new RequestHolder<>(channelId, handler, action, timeoutHandler));
-         NodeService.INSTANCE.find(channelId).channel()
-            .writeAndFlush(builder.build());
+            new RequestHolder<>(node, handler, action, timeoutHandler));
+         node.writeAndFlush(builder.build());
       }
       catch(Throwable e) {
          final RequestHolder<?> holder = requestHolders.remove(messageId);
@@ -165,7 +163,7 @@ public class TransportService {
             long timeoutTime = System.currentTimeMillis();
 
             timeoutInfoHandlers.put(messageId, new TimeoutInfoHolder(
-               holder.channelId(), holder.action(), sentTime, timeoutTime));
+               holder.node(), holder.action(), sentTime, timeoutTime));
             // now that we have the information visible via timeoutInfoHandlers,
             // we try to remove the request id
             final RequestHolder<?> removedHolder =
@@ -174,7 +172,7 @@ public class TransportService {
             if(removedHolder != null) {
                removedHolder.handler()
                   .handleException(new ReceiveTimeoutTransportException(
-                     holder.channelId(), holder.action(),
+                     holder.node(), holder.action(),
                      "message_id [" + messageId + "] timed out after ["
                         + (timeoutTime - sentTime) + "ms]"));
             }
@@ -199,7 +197,7 @@ public class TransportService {
    }
 
    static class TimeoutInfoHolder {
-      private final ChannelId channelId;
+      private final Node node;
 
       private final String action;
 
@@ -207,19 +205,19 @@ public class TransportService {
 
       private final long timeoutTime;
 
-      TimeoutInfoHolder(ChannelId channelId,
+      TimeoutInfoHolder(Node node,
                         String action,
                         long sentTime,
                         long timeoutTime)
       {
-         this.channelId = channelId;
+         this.node = node;
          this.action = action;
          this.sentTime = sentTime;
          this.timeoutTime = timeoutTime;
       }
 
-      public ChannelId channelId() {
-         return channelId;
+      public Node node() {
+         return node;
       }
 
       public String action() {
