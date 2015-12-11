@@ -2,6 +2,9 @@ package cn.togeek.netty.rest;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.restlet.Context;
 import org.restlet.Request;
@@ -30,6 +33,11 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
 public class HttpTransportAction implements Action {
+   private static final Logger logger = Logger
+      .getLogger(HttpTransportAction.class.getName());
+
+   private CountDownLatch latch = new CountDownLatch(1);
+
    public HttpTransportAction() {
       TransportService.INSTANCE.registerRequestHandler(
          HttpTransportAction.class.getName(),
@@ -39,31 +47,40 @@ public class HttpTransportAction implements Action {
    }
 
    public void execute(Node node, Request request, Response response) {
+      Reference ref = request.getResourceRef().clone();
+      ref.setScheme("http");
+      ref.setHostPort(52500);
+      ref.setHostDomain("127.0.0.1");
+
+      Form form = request.getResourceRef().getQueryAsForm();
+
+      if(form != null && !form.isEmpty()) {
+         ref.setQuery(form.getQueryString());
+      }
+
+      String uri = ref.toString();
+      String method = request.getMethod().getName();
+      Representation entity = request.getEntity();
+      HttpTransportRequest req =
+         new HttpTransportRequest(uri, method, entity);
+
       try {
-         Reference ref = request.getResourceRef().clone();
-         ref.setScheme("http");
-         ref.setHostPort(52500);
-         ref.setHostDomain("127.0.0.1");
-
-         Form form = request.getResourceRef().getQueryAsForm();
-
-         if(form != null && !form.isEmpty()) {
-            ref.setQuery(form.getQueryString());
-         }
-
-         String uri = ref.toString();
-         String method = request.getMethod().getName();
-         Representation entity = request.getEntity();
-         HttpTransportRequest req =
-            new HttpTransportRequest(uri, method, entity);
-
          TransportService.INSTANCE.sendRequest(node,
             HttpTransportAction.class.getName(),
             req,
-            new HttpTransportResponseHandler());
+            new HttpTransportResponseHandler(response));
       }
       catch(IOException e) {
-         e.printStackTrace();
+         logger.log(Level.WARNING, "failed to send request[" + node + "]", e);
+      }
+
+      try {
+         latch.await();
+      }
+      catch(InterruptedException e) {
+      }
+      finally {
+         latch.countDown();
       }
    }
 
@@ -88,11 +105,8 @@ public class HttpTransportAction implements Action {
 
       @Override
       public void readFrom(ByteBuf in) throws IOException {
-         System.out
-            .println(" HttpTransportRequest read == " + new String(in.array()));
          uri = ByteBufs.readString(in);
          method = ByteBufs.readString(in);
-
          boolean empty = in.readBoolean();
 
          if(!empty) {
@@ -105,7 +119,6 @@ public class HttpTransportAction implements Action {
 
       @Override
       public ByteBuf writeTo() throws IOException {
-         System.out.println(" HttpTransportRequest write == ");
          ByteBuf out = Unpooled.buffer();
          ByteBufs.writeString(uri, out);
          ByteBufs.writeString(method, out);
@@ -145,9 +158,6 @@ public class HttpTransportAction implements Action {
       public void handle(HttpTransportRequest request, TransportChannel channel)
          throws Exception
       {
-         System.out
-            .println(" HttpTransportRequestHandler == handle request ");
-
          final Context context = new Context();
          context.getParameters().add("readTimeout", "180000");
          ClientResource resource =
@@ -177,6 +187,12 @@ public class HttpTransportAction implements Action {
    class HttpTransportResponseHandler
       implements TransportResponseHandler<HttpTransportResponse>
    {
+      private Response httpRes;
+
+      public HttpTransportResponseHandler(Response httpRes) {
+         this.httpRes = httpRes;
+      }
+
       @Override
       public HttpTransportResponse newInstance() {
          return new HttpTransportResponse();
@@ -184,15 +200,13 @@ public class HttpTransportAction implements Action {
 
       @Override
       public void handleResponse(HttpTransportResponse response) {
-         System.out
-            .println(
-               " HttpTransportResponseHandler == handle response " + response);
+         httpRes.setEntity(response.getEntity());
+         latch.countDown();
       }
 
       @Override
       public void handleException(TransportException exception) {
-         System.out.println(" HttpTransportResponseHandler == handle exception "
-            + exception);
+         logger.log(Level.WARNING, exception.getMessage(), exception);
       }
 
       @Override
@@ -217,9 +231,6 @@ public class HttpTransportAction implements Action {
 
       @Override
       public void readFrom(ByteBuf in) throws IOException {
-         System.out.println(
-            " HttpTransportResponse read == " + new String(in.array()));
-
          boolean empty = in.readBoolean();
 
          if(!empty) {
@@ -232,8 +243,6 @@ public class HttpTransportAction implements Action {
 
       @Override
       public ByteBuf writeTo() throws IOException {
-         System.out.println(" HttpTransportResponse write == ");
-
          ByteBuf out = Unpooled.buffer();
          // write entity
          out.writeBoolean(entity == null || entity.isEmpty() ? true : false);
