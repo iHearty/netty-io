@@ -13,9 +13,12 @@ import org.restlet.data.Form;
 import org.restlet.data.MediaType;
 import org.restlet.data.Method;
 import org.restlet.data.Reference;
+import org.restlet.ext.jackson.JacksonRepresentation;
 import org.restlet.representation.ByteArrayRepresentation;
 import org.restlet.representation.Representation;
 import org.restlet.resource.ClientResource;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 import cn.togeek.netty.action.Action;
 import cn.togeek.netty.concurrent.ThreadPool;
@@ -171,9 +174,11 @@ public class HttpTransportAction implements Action {
             representation = resource.get();
          }
          else if(Method.POST.getName().equals(method)) {
+            entity = new JacksonRepresentation<>(entity, JsonNode.class);
             representation = resource.post(entity, MediaType.APPLICATION_JSON);
          }
          else if(Method.PUT.getName().equals(method)) {
+            entity = new JacksonRepresentation<>(entity, JsonNode.class);
             representation = resource.put(entity, MediaType.APPLICATION_JSON);
          }
          else if(Method.DELETE.getName().equals(method)) {

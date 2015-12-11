@@ -13,6 +13,7 @@ dependencies {
    compile "io.netty:netty-all:5.0.0.Alpha1"
    compile "org.apache.lucene:lucene-core:5.3.1"
    compile "org.restlet.jee:org.restlet:2.3.4"
+   compile "org.restlet.jee:org.restlet.ext.jackson:2.3.4"
 }
 
 compileJava {
