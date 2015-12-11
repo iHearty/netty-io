@@ -18,7 +18,7 @@ public class HttpTransportService extends Service {
    public synchronized void start() throws Exception {
       final Settings serverSettings = Settings.builder()
          .put(TransportServer.SERVER_HOST, "0.0.0.0")
-         .put(TransportServer.SERVER_PORT, 9090)
+         .put(TransportServer.SERVER_PORT, 52400)
          .put(NodeService.NODE_CLASS, PlantNode.class.getName())
          .build();
       final TransportServer server = new TransportServer();
@@ -39,7 +39,6 @@ public class HttpTransportService extends Service {
             @Override
             public void update(Observable observable, Object arg) {
                System.out.println(NodeService.INSTANCE.nodes());
-               // observable.deleteObserver(this);
             }
          });
 

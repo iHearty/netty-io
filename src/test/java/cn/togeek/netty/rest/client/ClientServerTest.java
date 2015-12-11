@@ -10,6 +10,12 @@ import cn.togeek.netty.server.TransportServer;
 
 public class ClientServerTest {
    public static void main(String[] args) throws Exception {
+      if(args.length == 0) {
+         return;
+      }
+
+      String serverHost = args[0];
+
       Component component = new Component();
       component.getServers().add(Protocol.HTTP, 52500);
 
@@ -21,8 +27,8 @@ public class ClientServerTest {
       new HttpTransportAction();
 
       final Settings clientSettings = Settings.builder()
-         .put(TransportServer.SERVER_HOST, "0.0.0.0")
-         .put(TransportServer.SERVER_PORT, 9090)
+         .put(TransportServer.SERVER_HOST, serverHost)
+         .put(TransportServer.SERVER_PORT, 52400)
          .put(TransportServer.HEARTBEAT_PERIOD, 5000)
          .put("heartbeat.plantId", 15) // client heartbeat properties
          .build();
