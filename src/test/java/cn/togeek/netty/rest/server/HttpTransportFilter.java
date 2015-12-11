@@ -17,6 +17,11 @@ public class HttpTransportFilter extends Filter {
    @Override
    protected int doHandle(Request request, Response response) {
       Node node = NodeService.INSTANCE.find(15);
+
+      if(node == null) {
+         return STOP;
+      }
+
       new HttpTransportAction().execute(node, request, response);
       return CONTINUE;
    }
