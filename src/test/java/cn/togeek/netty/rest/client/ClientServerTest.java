@@ -15,6 +15,7 @@ public class ClientServerTest {
       }
 
       String serverHost = args[0];
+      String plantId = args[1];
 
       Component component = new Component();
       component.getServers().add(Protocol.HTTP, 52500);
@@ -30,7 +31,7 @@ public class ClientServerTest {
          .put(TransportServer.SERVER_HOST, serverHost)
          .put(TransportServer.SERVER_PORT, 52400)
          .put(TransportServer.HEARTBEAT_PERIOD, 5000)
-         .put("heartbeat.plantId", 15) // client heartbeat properties
+         .put("heartbeat.plantId", plantId) // client heartbeat properties
          .build();
       final TransportClient client = new TransportClient();
       client.start(clientSettings);
