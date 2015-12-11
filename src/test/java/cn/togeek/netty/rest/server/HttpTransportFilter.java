@@ -1,4 +1,4 @@
-package cn.togeek.netty.rest;
+package cn.togeek.netty.rest.server;
 
 import java.util.Set;
 
@@ -8,6 +8,7 @@ import org.restlet.routing.Filter;
 
 import cn.togeek.netty.handler.Node;
 import cn.togeek.netty.handler.NodeService;
+import cn.togeek.netty.rest.HttpTransportAction;
 
 public class HttpTransportFilter extends Filter {
    @Override

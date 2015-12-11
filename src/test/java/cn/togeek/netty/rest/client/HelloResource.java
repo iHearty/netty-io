@@ -1,4 +1,4 @@
-package cn.togeek.netty.rest;
+package cn.togeek.netty.rest.client;
 
 import org.restlet.resource.Get;
 import org.restlet.resource.ServerResource;
@@ -6,6 +6,6 @@ import org.restlet.resource.ServerResource;
 public class HelloResource extends ServerResource {
    @Get
    public String greet() {
-      return "hello http";
+      return "client see hello";
    }
 }

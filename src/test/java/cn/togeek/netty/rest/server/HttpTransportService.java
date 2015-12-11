@@ -1,4 +1,4 @@
-package cn.togeek.netty.rest;
+package cn.togeek.netty.rest.server;
 
 import java.util.Observable;
 import java.util.Observer;
@@ -39,7 +39,7 @@ public class HttpTransportService extends Service {
             @Override
             public void update(Observable observable, Object arg) {
                System.out.println(NodeService.INSTANCE.nodes());
-               observable.deleteObserver(this);
+               // observable.deleteObserver(this);
             }
          });
 

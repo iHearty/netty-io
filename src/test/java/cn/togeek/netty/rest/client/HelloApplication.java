@@ -1,4 +1,4 @@
-package cn.togeek.netty.rest;
+package cn.togeek.netty.rest.client;
 
 import org.restlet.Application;
 import org.restlet.Restlet;
