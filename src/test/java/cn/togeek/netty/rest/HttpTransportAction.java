@@ -74,17 +74,44 @@ public class HttpTransportAction implements Action {
             new HttpTransportResponseHandler(response));
       }
       catch(IOException e) {
-         logger.log(Level.WARNING, "failed to send request[" + node + "]", e);
+         logger.log(Level.WARNING, "failed to send request to[" + node + "]",
+            e);
       }
 
       try {
          latch.await();
       }
       catch(InterruptedException e) {
-      }
-      finally {
          latch.countDown();
       }
+   }
+
+   private void writeEntity(Representation entity, ByteBuf out)
+      throws IOException
+   {
+      out.writeBoolean(entity == null || entity.isEmpty() ? true : false);
+
+      if(entity != null && !entity.isEmpty()) {
+         try(ByteArrayOutputStream bao = new ByteArrayOutputStream()) {
+            entity.write(bao);
+            byte[] bytes = bao.toByteArray();
+            out.writeInt(bytes.length);
+            out.writeBytes(bytes);
+         }
+      }
+   }
+
+   private Representation readEntity(ByteBuf in) {
+      boolean empty = in.readBoolean();
+
+      if(!empty) {
+         int length = in.readInt();
+         byte[] bytes = new byte[length];
+         in.readBytes(bytes);
+         return new ByteArrayRepresentation(bytes);
+      }
+
+      return null;
    }
 
    public class HttpTransportRequest implements TransportRequest {
@@ -110,14 +137,7 @@ public class HttpTransportAction implements Action {
       public void readFrom(ByteBuf in) throws IOException {
          uri = ByteBufs.readString(in);
          method = ByteBufs.readString(in);
-         boolean empty = in.readBoolean();
-
-         if(!empty) {
-            int length = in.readInt();
-            byte[] bytes = new byte[length];
-            in.readBytes(bytes);
-            entity = new ByteArrayRepresentation(bytes);
-         }
+         entity = readEntity(in);
       }
 
       @Override
@@ -125,19 +145,7 @@ public class HttpTransportAction implements Action {
          ByteBuf out = Unpooled.buffer();
          ByteBufs.writeString(uri, out);
          ByteBufs.writeString(method, out);
-
-         // write entity
-         out.writeBoolean(entity == null || entity.isEmpty() ? true : false);
-
-         if(entity != null && !entity.isEmpty()) {
-            try(ByteArrayOutputStream bao = new ByteArrayOutputStream()) {
-               entity.write(bao);
-               byte[] bytes = bao.toByteArray();
-               out.writeInt(bytes.length);
-               out.writeBytes(bytes);
-            }
-         }
-
+         writeEntity(entity, out);
          return out;
       }
 
@@ -236,31 +244,13 @@ public class HttpTransportAction implements Action {
 
       @Override
       public void readFrom(ByteBuf in) throws IOException {
-         boolean empty = in.readBoolean();
-
-         if(!empty) {
-            int length = in.readInt();
-            byte[] bytes = new byte[length];
-            in.readBytes(bytes);
-            entity = new ByteArrayRepresentation(bytes);
-         }
+         entity = readEntity(in);
       }
 
       @Override
       public ByteBuf writeTo() throws IOException {
          ByteBuf out = Unpooled.buffer();
-         // write entity
-         out.writeBoolean(entity == null || entity.isEmpty() ? true : false);
-
-         if(entity != null && !entity.isEmpty()) {
-            try(ByteArrayOutputStream bao = new ByteArrayOutputStream()) {
-               entity.write(bao);
-               byte[] bytes = bao.toByteArray();
-               out.writeInt(bytes.length);
-               out.writeBytes(bytes);
-            }
-         }
-
+         writeEntity(entity, out);
          return out;
       }
    }
