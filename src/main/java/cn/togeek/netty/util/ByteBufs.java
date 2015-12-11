@@ -6,6 +6,12 @@ import io.netty.buffer.ByteBuf;
 
 public class ByteBufs {
    public static void writeString(String str, ByteBuf out) {
+      if(str == null) {
+         out.writeBoolean(false);
+         return;
+      }
+
+      out.writeBoolean(true);
       int charCount = str.length();
       writeVInt(charCount, out);
 
@@ -47,6 +53,10 @@ public class ByteBufs {
    private static final CharsRefBuilder spare = new CharsRefBuilder();
 
    public static String readString(ByteBuf in) {
+      if(!in.readBoolean()) {
+         return null;
+      }
+
       final int charCount = readVInt(in);
       spare.clear();
       spare.grow(charCount);

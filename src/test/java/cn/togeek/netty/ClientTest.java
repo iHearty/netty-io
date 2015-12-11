@@ -4,6 +4,7 @@ import cn.togeek.netty.client.TransportClient;
 import cn.togeek.netty.concurrent.ThreadPool;
 import cn.togeek.netty.exception.SettingsException;
 import cn.togeek.netty.handler.TransportService;
+import cn.togeek.netty.rest.HttpTransportAction;
 import cn.togeek.netty.server.TransportServer;
 
 public class ClientTest {
@@ -11,8 +12,11 @@ public class ClientTest {
       TransportService.INSTANCE.registerRequestHandler(
          TestAction.class.getName(),
          ThreadPool.Names.GENERIC,
-         TestActionRequest.class,
+         new TestActionRequest(),
          new TestActionRequestHandler());
+
+      // TODO, regist action handler
+      new HttpTransportAction();
 
       final Settings clientSettings = Settings.builder()
          .put(TransportServer.SERVER_HOST, "0.0.0.0")

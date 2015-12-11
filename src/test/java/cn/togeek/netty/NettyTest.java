@@ -25,7 +25,7 @@ public class NettyTest {
       TransportService.INSTANCE.registerRequestHandler(
          TestAction.class.getName(),
          ThreadPool.Names.GENERIC,
-         TestActionRequest.class,
+         new TestActionRequest(),
          new TestActionRequestHandler());
 
       final Settings serverSettings = Settings.builder()
