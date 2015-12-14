@@ -47,6 +47,7 @@ public class HeartbeatHandler extends SimpleChannelInboundHandler<Message> {
    public void channelActive(final ChannelHandlerContext context)
       throws Exception
    {
+      // client side
       if(TransportStatus.isRequest(status)) {
          final ByteBuf out = Unpooled.buffer();
 
@@ -70,7 +71,7 @@ public class HeartbeatHandler extends SimpleChannelInboundHandler<Message> {
                                      throws Exception
    {
       if(TransportStatus.isHeartbate(message.getStatus())) {
-         // client
+         // client side
          if(TransportStatus.isRequest(message.getStatus())) {
             heartbeat = context.executor().schedule(
                new Runnable() {
@@ -83,13 +84,14 @@ public class HeartbeatHandler extends SimpleChannelInboundHandler<Message> {
                }, period,
                TimeUnit.MILLISECONDS);
          }
-         // server
+         // server side
          else {
             if(!message.getMessage().isEmpty()) {
                ByteBuf in = Unpooled.copiedBuffer(
                   message.getMessage().asReadOnlyByteBuffer());
                readProps(in);
-               NodeService.INSTANCE.update(context.channel(), props.getAsMap());
+               NodeService.INSTANCE.update(context.channel(),
+                  props.getAsMap());
                GlobalObservable.INSTANCE
                   .notifyObservers(GlobalObservable.Types.CONNECTED);
             }

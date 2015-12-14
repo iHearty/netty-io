@@ -13,6 +13,10 @@ import cn.togeek.netty.rest.HttpTransportAction;
 public class HttpTransportFilter extends Filter {
    @Override
    protected int beforeHandle(Request request, Response response) {
+      if(request.getResourceRef().getIdentifier().indexOf("/favicon.ico") > 0) {
+         return SKIP;
+      }
+
       return super.beforeHandle(request, response);
    }
 
