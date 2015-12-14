@@ -1,5 +1,7 @@
 package cn.togeek.netty.rest.server;
 
+import java.util.Set;
+
 import org.restlet.Request;
 import org.restlet.Response;
 import org.restlet.routing.Filter;
@@ -16,13 +18,12 @@ public class HttpTransportFilter extends Filter {
 
    @Override
    protected int doHandle(Request request, Response response) {
-      Node node = NodeService.INSTANCE.find(15);
+      Set<Node> nodes = NodeService.INSTANCE.nodes();
 
-      if(node == null) {
-         return STOP;
+      for(Node node : nodes) {
+         new HttpTransportAction().execute(node, request, response);
       }
 
-      new HttpTransportAction().execute(node, request, response);
       return CONTINUE;
    }
 
