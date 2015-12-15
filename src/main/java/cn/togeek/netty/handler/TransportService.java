@@ -117,7 +117,7 @@ public class TransportService {
 
          requestHolders.put(messageId,
             new RequestHolder<>(node, handler, action, timeoutHandler));
-         node.writeAndFlush(builder.build());
+         node.channel().writeAndFlush(builder.build());
       }
       catch(Throwable e) {
          final RequestHolder<?> holder = requestHolders.remove(messageId);

@@ -4,6 +4,8 @@ import java.lang.reflect.Constructor;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import cn.togeek.netty.Settings;
 import cn.togeek.netty.util.Strings;
@@ -17,6 +19,9 @@ import io.netty.util.concurrent.GlobalEventExecutor;
 import io.netty.util.internal.ConcurrentSet;
 
 public class NodeService {
+   private static final Logger logger = Logger
+      .getLogger(NodeService.class.getName());
+
    public static final NodeService INSTANCE = new NodeService();
 
    public static final String NODE_CLASS = "NODE_CLASS";
@@ -37,6 +42,7 @@ public class NodeService {
       return Collections.unmodifiableSet(nodes);
    }
 
+   @SuppressWarnings("unchecked")
    public void register(Settings settings, Channel channel) {
       boolean added = channels.add(channel);
 
@@ -55,6 +61,9 @@ public class NodeService {
                node = constructor.newInstance(channel);
             }
             catch(Exception e) {
+               logger.log(Level.WARNING,
+                  "initialize class[" + className + "] failed", e);
+
                node = new Node(channel);
             }
          }

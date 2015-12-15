@@ -3,10 +3,8 @@ package cn.togeek.netty.handler;
 import java.util.Map;
 
 import cn.togeek.netty.Settings;
-import cn.togeek.netty.rpc.Transport.Message;
 
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelId;
 
 public class Node {
@@ -52,10 +50,6 @@ public class Node {
       }
 
       return false;
-   }
-
-   public ChannelFuture writeAndFlush(Message message) {
-      return channel.writeAndFlush(message);
    }
 
    @Override
