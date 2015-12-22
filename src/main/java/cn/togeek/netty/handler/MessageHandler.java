@@ -79,7 +79,7 @@ public class MessageHandler extends SimpleChannelInboundHandler<Message> {
          Unpooled.copiedBuffer(message.asReadOnlyByteBuffer());
 
       try {
-         TransportRequest request = registry.getRequest();
+         TransportRequest request = registry.newRequest();
          request.readFrom(input);
 
          if(ThreadPool.Names.SAME.equals(registry.getExecutor())) {

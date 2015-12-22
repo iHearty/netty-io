@@ -24,8 +24,8 @@ public class RequestHandlerRegistry<Request extends TransportRequest> {
       return executor;
    }
 
-   public Request getRequest() throws Exception {
-      return handler.newInstance();
+   public Request newRequest() throws Exception {
+      return handler.newRequest();
    }
 
    public TransportRequestHandler<Request> getHandler() {

@@ -7,7 +7,7 @@ public class TestActionRequestHandler
    implements TransportRequestHandler<TestActionRequest>
 {
    @Override
-   public TestActionRequest newInstance() {
+   public TestActionRequest newRequest() {
       // TODO Auto-generated method stub
       return new TestActionRequest();
    }

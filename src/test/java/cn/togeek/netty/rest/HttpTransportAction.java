@@ -196,7 +196,7 @@ public class HttpTransportAction implements Action {
       }
 
       @Override
-      public HttpTransportRequest newInstance() {
+      public HttpTransportRequest newRequest() {
          return new HttpTransportRequest();
       }
    }
