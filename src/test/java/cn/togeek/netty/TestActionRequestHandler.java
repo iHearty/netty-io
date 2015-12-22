@@ -7,9 +7,16 @@ public class TestActionRequestHandler
    implements TransportRequestHandler<TestActionRequest>
 {
    @Override
+   public TestActionRequest newInstance() {
+      // TODO Auto-generated method stub
+      return new TestActionRequest();
+   }
+
+   @Override
    public void handle(TestActionRequest request, TransportChannel channel)
       throws Exception
    {
       channel.sendResponse(new TestActionResponse());
    }
+
 }

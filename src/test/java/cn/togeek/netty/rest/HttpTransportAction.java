@@ -45,7 +45,6 @@ public class HttpTransportAction implements Action {
       TransportService.INSTANCE.registerRequestHandler(
          HttpTransportAction.class.getName(),
          ThreadPool.Names.GENERIC,
-         new HttpTransportRequest(),
          new HttpTransportRequestHandler());
    }
 
@@ -194,6 +193,11 @@ public class HttpTransportAction implements Action {
          }
 
          channel.sendResponse(new HttpTransportResponse(representation));
+      }
+
+      @Override
+      public HttpTransportRequest newInstance() {
+         return new HttpTransportRequest();
       }
    }
 

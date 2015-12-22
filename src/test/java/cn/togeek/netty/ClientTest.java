@@ -12,7 +12,6 @@ public class ClientTest {
       TransportService.INSTANCE.registerRequestHandler(
          TestAction.class.getName(),
          ThreadPool.Names.GENERIC,
-         new TestActionRequest(),
          new TestActionRequestHandler());
 
       // TODO, regist action handler

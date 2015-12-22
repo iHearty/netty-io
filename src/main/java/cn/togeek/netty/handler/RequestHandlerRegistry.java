@@ -5,18 +5,14 @@ public class RequestHandlerRegistry<Request extends TransportRequest> {
 
    private final String executor;
 
-   private final Request request;
-
    private final TransportRequestHandler<Request> handler;
 
    public RequestHandlerRegistry(String action,
                                  String executor,
-                                 Request request,
                                  TransportRequestHandler<Request> handler)
    {
       this.action = action;
       this.executor = executor;
-      this.request = request;
       this.handler = handler;
    }
 
@@ -29,7 +25,7 @@ public class RequestHandlerRegistry<Request extends TransportRequest> {
    }
 
    public Request getRequest() throws Exception {
-      return request;
+      return handler.newInstance();
    }
 
    public TransportRequestHandler<Request> getHandler() {
